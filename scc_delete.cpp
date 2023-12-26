@@ -9,7 +9,7 @@ void create_node(int root_node, scc_tree* parent, int depth, int* vertices, int 
 		vertice_nodes[root_node] = node;
 	}
 	else{
-		DAG* dag = split_and_condense();
+		DAG dag = split_and_condense();
 	}
 	node->parent = parent;
 	node->dag = dag;
