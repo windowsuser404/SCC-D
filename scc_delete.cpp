@@ -1,7 +1,7 @@
 #include "scc_delete_split_and_condense.cpp"
 
 //create the dag for the node
-void create_node(int root_node, scc_tree* parent, int depth, int* vertices, int Nverts, int*& scc_map, Graph& g){
+void create_node(int root_node, scc_tree* parent, int depth, int* vertices, int Nverts, int*& scc_map, Graph& g, tree_node** vertice_nodes){
 	tree_node* node = new tree_node;
 	int* scc_list
 	if(Nverts==1){
@@ -19,13 +19,13 @@ void create_node(int root_node, scc_tree* parent, int depth, int* vertices, int 
 }	
 
 //vertices is vertices belonging to same scc, Nverts is number of vertices that needs to be processed
-void create_scctree(int root_node, int* vertices, int Nverts, Graph& g, scc_tree* parent, int*& scc_maps, int depth){
+void create_scctree(int root_node, int* vertices, int Nverts, Graph& g, scc_tree* parent, int*& scc_maps, int depth, tree_node** vertice_nodes){
 //	int* inverse_map = new int[Nverts];
 //	for(int i=0; i<Nverts; i++){
 //		inverse_map[i] = vertices[i];
 //	}
 	int scc_nos;
-	tree_node* node = create_node(root_node, parent, depth, vertices, Nverts, scc_maps, g);
+	tree_node* node = create_node(root_node, parent, depth, vertices, Nverts, scc_maps, g, vertice_nodes);
 	if(Nverts==1){
 		return;
 	}
@@ -36,7 +36,7 @@ void create_scctree(int root_node, int* vertices, int Nverts, Graph& g, scc_tree
 	delete [] dag_scc;
 }
 
-`void Create_SCC_trees(int vertices, int num_verts, int*& scc_maps, tree_node* parent, int depth){
+`void Create_SCC_trees(int vertices, int num_verts, int*& scc_maps, tree_node* parent, int depth, tree_node** vertice_nodes){
 	int root_count = 0;
 	int *temp = new int[num_verts];
 	int *inverse_scc = new int[num_verts]; // inverse_scc[index]=root_node of scc
@@ -70,7 +70,7 @@ void create_scctree(int root_node, int* vertices, int Nverts, Graph& g, scc_tree
 	for(int i=0;i<root_count;i++){
 		int start = scc_count[i];
 		int nverts = scc_count[i+1]-scc_counr[i];
-		create_scctree(inverse_scc[i], &ordered_vertices[start], nverts, g, parent, scc_maps, depth+1);
+		create_scctree(inverse_scc[i], &ordered_vertices[start], nverts, g, parent, scc_maps, depth+1, vertice_nodes);
 	}
 	delete [] scc_counts;
 	delete [] ordered_vertices;
@@ -167,4 +167,15 @@ void Find_unreachable(Graph* g, int* verts, int num, int source){
 	Find_unreachable_down(g, verts, num, source, unreachable, unreachable_count);
 }
 
+DAG* dag_finder(int v1, int v2){
 
+}
+
+void del_edge(int src, int dst){
+	if(scc[src]==scc[dst]){
+		DAG* dag = dag_finder(src, dst);
+	}
+	else{
+		return;
+	}
+}

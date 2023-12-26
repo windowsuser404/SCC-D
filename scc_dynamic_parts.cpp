@@ -209,8 +209,9 @@ void edge_deletion(graph& g, FILE* file, int* insertsrc_avail, int* insertdst_av
 	for(int i=0; i<g.n; i++){
 		temp_scc[i] = scc_maps[i]; // temporary to accomodate changes for creating trees
 	}
-
-	Create_SCC_trees(temp_verts, g.n, temp_scc, NULL , 0);
+	
+	tree_node** vertice_nodes = new tree_node*[g.n];
+	Create_SCC_trees(temp_verts, g.n, temp_scc, NULL , 0, vertice_nodes);
 	delete [] temp_verts;
 	delete [] temp_scc;
 
