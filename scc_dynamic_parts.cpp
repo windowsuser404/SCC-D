@@ -1,4 +1,5 @@
 #include "scc_insert.cpp"
+#include "scc_delete.cpp"
 #include <iostream>
 #include <string>
 
@@ -197,8 +198,22 @@ void edge_insertion(graph& g, FILE* file, int* insertsrc_avail, int* insertdst_a
 	delete [] scc_index;
 }
 
-void edge_deletion(graph& g, FILE* file, int* insertsrc_avail, int* insertdst_avail, int& inserts){
+void edge_deletion(graph& g, FILE* file, int* insertsrc_avail, int* insertdst_avail, int& inserts, int* scc_maps){
 	// get data structure needed for deletion, those trees
+	temp_verts = new int[g.n];
+	for(int i=0; i<g.n; i++){
+		temp_verts[i] = i; //temporary to initaite a block of vertices [0,1...n-1]
+	}
+
+	temp_scc = new int[g.n];
+	for(int i=0; i<g.n; i++){
+		temp_scc[i] = scc_maps[i]; // temporary to accomodate changes for creating trees
+	}
+
+	Create_SCC_trees(temp_verts, g.n, temp_scc, NULL , 0);
+	delete [] temp_verts;
+	delete [] temp_scc;
+
 	// updating csr part
 	char op;
 	int src, dst, found;

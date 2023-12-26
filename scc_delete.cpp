@@ -1,7 +1,7 @@
 #include "scc_delete_split_and_condense.cpp"
 
 //create the dag for the node
-void create_node(int root_node, scc_tree* parent, int depth, int* vertices, int Nverts){
+void create_node(int root_node, scc_tree* parent, int depth, int* vertices, int Nverts, int*& scc_map, Graph& g){
 	tree_node* node = new tree_node;
 	int* scc_list
 	if(Nverts==1){
@@ -9,7 +9,7 @@ void create_node(int root_node, scc_tree* parent, int depth, int* vertices, int 
 		vertice_nodes[root_node] = node;
 	}
 	else{
-		DAG dag = split_and_condense();
+		DAG dag* = split_and_condense(root_node, Nverts, vertices, scc_map, g);
 	}
 	node->parent = parent;
 	node->dag = dag;
@@ -19,24 +19,24 @@ void create_node(int root_node, scc_tree* parent, int depth, int* vertices, int 
 }	
 
 //vertices is vertices belonging to same scc, Nverts is number of vertices that needs to be processed
-void create_scctree(int root_node, int* vertices, int Nverts, Graph& g, scc_tree* parent, int*& scc_maps){
+void create_scctree(int root_node, int* vertices, int Nverts, Graph& g, scc_tree* parent, int*& scc_maps, int depth){
 //	int* inverse_map = new int[Nverts];
 //	for(int i=0; i<Nverts; i++){
 //		inverse_map[i] = vertices[i];
 //	}
 	int scc_nos;
-	tree_node* node = create_node(root_node, parent);
+	tree_node* node = create_node(root_node, parent, depth, vertices, Nverts, scc_maps, g);
 	if(Nverts==1){
 		return;
 	}
 	else{
-		Create_SCC_trees(vertices, Nverts, scc_maps, parent);	
+		Create_SCC_trees(vertices, Nverts, scc_maps, node, depth);	
 	}
 	delete [] inverse_map;
 	delete [] dag_scc;
 }
 
-`void Create_SCC_trees(int vertices, int num_verts, int*& scc_maps, tree_node* parent){
+`void Create_SCC_trees(int vertices, int num_verts, int*& scc_maps, tree_node* parent, int depth){
 	int root_count = 0;
 	int *temp = new int[num_verts];
 	int *inverse_scc = new int[num_verts]; // inverse_scc[index]=root_node of scc
@@ -70,7 +70,7 @@ void create_scctree(int root_node, int* vertices, int Nverts, Graph& g, scc_tree
 	for(int i=0;i<root_count;i++){
 		int start = scc_count[i];
 		int nverts = scc_count[i+1]-scc_counr[i];
-		create_scctree(inverse_scc[i], &ordered_vertices[start], nverts, g, parent, scc_maps);
+		create_scctree(inverse_scc[i], &ordered_vertices[start], nverts, g, parent, scc_maps, depth+1);
 	}
 	delete [] scc_counts;
 	delete [] ordered_vertices;

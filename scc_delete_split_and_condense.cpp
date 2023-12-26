@@ -454,4 +454,6 @@ DAG* split_and_condense(int root_node, int Nverts, int* vertices, int*& scc_map,
 	delete [] temp_counts;
 	delete [] temp_in;
 	delete [] temp_inv_map;
+
+	return dag;
 }
