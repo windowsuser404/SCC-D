@@ -167,15 +167,54 @@ void Find_unreachable(Graph* g, int* verts, int num, int source){
 	Find_unreachable_down(g, verts, num, source, unreachable, unreachable_count);
 }
 
-DAG* dag_finder(int v1, int v2){
+tree_node* node_finder(tree_node*& node1, tree_node*& node2){
+	if(node1->depth>node2->depth){
+		int d_diff = node1->depth-node2->depth;
+		for(int i=0; i<d_diff; i++){
+			node1 = node1->parent;
+		}
+	}		
+	else{
+		int d_diff = node2->depth-node1->depth;
+		for(int i=0; i<d_diff; i++){
+			node2 = node2->parent;
+		}
+	}	
 
+	if(node1->parent == node2->parent){
+		return node1->parent;
+	}
+	else{
+		node1 = node1->parent;
+		node2 = node2->parent;
+		return node_finder(node1, node2);
+	}
 }
 
-void del_edge(int src, int dst){
+void find_index(int* indexes, int src, int dst, DAG* dag){ //TO:DO check if better methods are available
+	for(int i=0; i<dag->vert_no; i++){
+		if(dag->vertices[i]==src){
+			indexes[0]=i; 
+		}
+		else if(dag->vertices[i]==dst){
+			indexes[1]=i;
+		}
+	}	
+}
+
+void del_edge(int src, int dst, tree_node** vertice_nodes){
 	if(scc[src]==scc[dst]){
-		DAG* dag = dag_finder(src, dst);
+		tree_node* node1 = vertice_nodes[src];
+		tree_node* node2 = vertice_nodes[dst];
+		tree_node* Pnode = node_finder(node1, node2);
 	}
+
 	else{
 		return;
 	}
+	
+	int indexes[2];
+	find_index(indexes, node1->scc_node, node2->scc_node, Pnode->dag); // use function temporarily 
+	
+
 }
