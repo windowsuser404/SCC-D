@@ -78,13 +78,13 @@ void create_scctree(int root_node, int* vertices, int Nverts, Graph& g, scc_tree
 	delete [] temp;
 }
 
-void Find_Unreachable_down(Graph* g, int* verts, int num, int source, int* unreachable, int &unreachable_count){
-	int* temp_degs = new int[g.n];
-	for(int i=0; i<g.n; i++){
-		temp_degs[i] = in_degree(g, i);
+void Find_Unreachable_down(){
+	int* temp_degs = new int[dag->vert_no];
+	for(int i=0; i<dag->vert_no; i++){
+		temp_degs[i] = dag->in_deg_list[i+1]-dag->in_deg_list[i];
 	}
-	int* queue = new int[g.n];
-	int* next_queue = new int[g.n];
+	int* queue = new int[dag->vert_no];
+	int* next_queue = new int[dag->vert_no];
 	int* temp;
 	int queue_size = 0;
 	int nxtq_size = 0;
@@ -119,7 +119,7 @@ void Find_Unreachable_down(Graph* g, int* verts, int num, int source, int* unrea
 	delete [] next_queue;
 }
 
-void Find_Unreachable_up(Graph* g, int* verts, int num, int source, int* unreachable, int &unreachable_count){
+void Find_Unreachable_up(){
 	int* temp_degs = new int[g.n];
 	for(int i=0; i<g.n; i++){
 		temp_degs[i] = out_degree(g, i);
@@ -160,9 +160,9 @@ void Find_Unreachable_up(Graph* g, int* verts, int num, int source, int* unreach
 	delete [] next_queue;
 }
 
-void Find_unreachable(Graph* g, int* verts, int num, int source){
+void Find_unreachable(tree_node* node, int* verts, int Nverts){
 	int unreachable_count;
-	int* unreachable = new int[g.n];
+	int* unreachable = new int[node->dag->vert_no];
 	Find_unreachable_up(g, verts, num, source, unreachable, unreachable_count);
 	Find_unreachable_down(g, verts, num, source, unreachable, unreachable_count);
 }
@@ -191,15 +191,8 @@ tree_node* node_finder(tree_node*& node1, tree_node*& node2){
 	}
 }
 
-void find_index(int* indexes, int src, int dst, DAG* dag){ //TO:DO check if better methods are available
-	for(int i=0; i<dag->vert_no; i++){
-		if(dag->vertices[i]==src){
-			indexes[0]=i; 
-		}
-		else if(dag->vertices[i]==dst){
-			indexes[1]=i;
-		}
-	}	
+void find_index(int* indexes, int* to_be_found, int* vertices){ //TO:DO check if better methods are available
+	
 }
 
 void del_edge(int src, int dst, tree_node** vertice_nodes){
@@ -212,9 +205,30 @@ void del_edge(int src, int dst, tree_node** vertice_nodes){
 	else{
 		return;
 	}
-	
-	int indexes[2];
-	find_index(indexes, node1->scc_node, node2->scc_node, Pnode->dag); // use function temporarily 
-	
 
+	DAG* dag = Pnode->dag;
+	int* vertices = dag->vertices;
+	int indexes[2], temp[2];
+	temp[0] = node1->scc_node; temp[1] = node2->scc_node;
+	sort(temp); //TO:DO define sort
+	find_index(indexes, temp, vertices); // use function temporarily 
+	for(int i=dag->out_deg_list[src]; i<dag->out_deg_list[src+1]; i++){
+		if(dag->outs[i]==dst){
+			dag->outs[i]=-1;
+			break;
+		}
+	}
+	for(int i=dag->in_deg_list[dst]; i<dag->in_deg_list[dst+1]; i++){
+		if(dag->ins[i]==src){
+			dag->ins[i]=-1;
+			break;
+		}
+	}
+
+	//currently doing one by one, should discuss and look how to overall deletion
+	int* src_and_sinks = new int[2];
+	src_and_sinks[0] = src;
+	src_and_sinks[1] = dst;
+	Find_unreachable(Pnode, src_and_sinks, 2){
+	}
 }

@@ -1,3 +1,5 @@
+#include "sort.cpp"
+
 struct DAG;
 struct scc_tree;
 
@@ -356,6 +358,10 @@ int delscc_color(graph& g, bool* valid,
   return num_scc;
 }
 
+void* sort(int*& array){//TO:DO get a better sorting algorithm, this is temporary
+	//
+}
+
 DAG* split_and_condense(int root_node, int Nverts, int* vertices, int*& scc_map, graph& g){// org_scc_map is the true one and will not change with new condensation
 	bool* valid = new bool[Nverts];
 	int scc_no=0;
@@ -387,6 +393,7 @@ DAG* split_and_condense(int root_node, int Nverts, int* vertices, int*& scc_map,
 			dag_verts[scc_no++] = vertices[i];
 		}
 	}
+	sort(dag_verts, 0, scc_no-1);
 	DAG->vertices = dag_verts;
 	int* out_edge_counts = new int[scc_no+1];
 	int* in_edge_counts = new int[scc_no+1];
