@@ -160,7 +160,7 @@ void Find_Unreachable_up(){
 	delete [] next_queue;
 }
 
-void Find_unreachable(tree_node* node, int* verts, int Nverts){
+int* Find_unreachable(tree_node* node, int* verts, int Nverts){
 	int unreachable_count;
 	int* unreachable = new int[node->dag->vert_no];
 	Find_unreachable_up(g, verts, num, source, unreachable, unreachable_count);
@@ -206,7 +206,7 @@ void del_edge(int src, int dst, tree_node** vertice_nodes){
 	int* vertices = dag->vertices;
 	int indexes[2], temp[2];
 	temp[0] = node1->scc_node; temp[1] = node2->scc_node;
-	sort(temp); //TO:DO define sort
+//	sort(temp); //TO:DO define sort
 	find_index(indexes, temp, vertices); // use function temporarily 
 	for(int i=dag->out_deg_list[src]; i<dag->out_deg_list[src+1]; i++){
 		if(dag->outs[i]==dst){
@@ -220,11 +220,10 @@ void del_edge(int src, int dst, tree_node** vertice_nodes){
 			break;
 		}
 	}
+	
+	int *temp_indegs, temp_outdeg;
 
 	//currently doing one by one, should discuss and look how to overall deletion
-	int* src_and_sinks = new int[2];
-	src_and_sinks[0] = src;
-	src_and_sinks[1] = dst;
-	Find_unreachable(Pnode, src_and_sinks, 2){
+	Find_unreachable(Pnode, indexes, 2){
 	}
 }
