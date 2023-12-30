@@ -1,3 +1,7 @@
+void find_index(int* indexes, int* to_be_found, int* vertices){ //TO:DO check if better methods are available
+	
+}
+
 void merge(int* list, int bot, int mid, int top){
 	int i, j, k;
 	int n1 = mid - bot + 1;
