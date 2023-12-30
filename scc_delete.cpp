@@ -191,10 +191,6 @@ tree_node* node_finder(tree_node*& node1, tree_node*& node2){
 	}
 }
 
-void find_index(int* indexes, int* to_be_found, int* vertices){ //TO:DO check if better methods are available
-	
-}
-
 void del_edge(int src, int dst, tree_node** vertice_nodes){
 	if(scc[src]==scc[dst]){
 		tree_node* node1 = vertice_nodes[src];

@@ -1,4 +1,4 @@
-#include "sort.cpp"
+#include "aux.cpp"
 
 struct DAG;
 struct scc_tree;
