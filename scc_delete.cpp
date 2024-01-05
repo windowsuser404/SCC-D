@@ -1,7 +1,8 @@
 #include "scc_delete_split_and_condense.cpp"
+#include "lift_up.cpp"
 
 //create the dag for the node
-void create_node(int root_node, scc_tree* parent, int depth, int* vertices, int Nverts, int*& scc_map, Graph& g, tree_node** vertice_nodes){
+tree_node* create_node(int root_node, scc_tree* parent, int depth, int* vertices, int Nverts, int*& scc_map, Graph& g, tree_node** vertice_nodes){
 	tree_node* node = new tree_node;
 	int* scc_list
 	if(Nverts==1){
@@ -15,6 +16,9 @@ void create_node(int root_node, scc_tree* parent, int depth, int* vertices, int 
 	node->dag = dag;
 	node->scc_node = root_node;
 	node->depth = depth;
+	int index;
+	find_index(&index, 1, root_node, 1, parent->dag->vertices);
+	parent->childs[index] = node;
 	return node;
 }	
 
@@ -78,11 +82,8 @@ void create_scctree(int root_node, int* vertices, int Nverts, Graph& g, scc_tree
 	delete [] temp;
 }
 
-void Find_Unreachable_down(){
-	int* temp_degs = new int[dag->vert_no];
-	for(int i=0; i<dag->vert_no; i++){
-		temp_degs[i] = dag->in_deg_list[i+1]-dag->in_deg_list[i];
-	}
+void Find_Unreachable_down(DAG* dag, int* verts, int num, int source, int* unreachable, int& unreachable_count){
+	int* temp_degs = dag->in_deg;
 	int* queue = new int[dag->vert_no];
 	int* next_queue = new int[dag->vert_no];
 	int* temp;
@@ -99,8 +100,8 @@ void Find_Unreachable_down(){
 		for(int i=0; i<queue_size; i++){
 			vert = queue_size[i];
 			unreachable[unreachable_count++] = vert;
-			outs = out_vertices(g, vert);
-			odeg = out_degree(g, vert);
+			outs = dag->outs;
+			odeg = dag->out_deg_list[vert+1]-dag->out_deg_list[vert];
 			for(int j=0; j<odeg; j++){
 				int outv = outs[j];
 				temp_degs[outv]--;
@@ -119,13 +120,10 @@ void Find_Unreachable_down(){
 	delete [] next_queue;
 }
 
-void Find_Unreachable_up(){
-	int* temp_degs = new int[g.n];
-	for(int i=0; i<g.n; i++){
-		temp_degs[i] = out_degree(g, i);
-	}
-	int* queue = new int[g.n];
-	int* next_queue = new int[g.n];
+void Find_Unreachable_up(DAG* dag, int* verts, int num, int source, int* unreachable, int& unreachable_count){
+	int* temp_degs = dag->out_deg;
+	int* queue = new int[dag->vert_no];
+	int* next_queue = new int[dag->vert_no];
 	int* temp;
 	int queue_size = 0;
 	int nxtq_size = 0;
@@ -140,9 +138,9 @@ void Find_Unreachable_up(){
 		for(int i=0; i<queue_size; i++){
 			vert = queue_size[i];
 			unreachable[unreachable_count++] = vert;
-			ins = in_vertices(g, vert);
-			ideg = in_degree(g, vert);
-			for(int j=0; j<odeg; j++){
+			ins = dag->ins;
+			ideg = dag->in_deg_list[vert+1]-dag->in_deg_list[vert];
+			for(int j=0; j<ideg; j++){
 				int inv = ins[j];
 				temp_degs[inv]--;
 				if(temp_degs[inv]==0){
@@ -160,11 +158,12 @@ void Find_Unreachable_up(){
 	delete [] next_queue;
 }
 
-int* Find_unreachable(tree_node* node, int* verts, int Nverts){
-	int unreachable_count;
-	int* unreachable = new int[node->dag->vert_no];
-	Find_unreachable_up(g, verts, num, source, unreachable, unreachable_count);
-	Find_unreachable_down(g, verts, num, source, unreachable, unreachable_count);
+int Find_unreachable(tree_node* node, int* verts, int Nverts, int* unreachable){
+	int unreachable_count=0;
+	unreachable = new int[node->dag->vert_no];
+	Find_unreachable_up(dag, verts, Nverts, node->scc_node, unreachable, unreachle_count);
+	Find_unreachable_down(dag, verts, Nverts, node->scc_node, unreachable, unreachle_count);
+	return unreachable_count;
 }
 
 tree_node* node_finder(tree_node*& node1, tree_node*& node2){
@@ -208,22 +207,34 @@ void del_edge(int src, int dst, tree_node** vertice_nodes){
 	temp[0] = node1->scc_node; temp[1] = node2->scc_node;
 //	sort(temp); //TO:DO define sort
 	find_index(indexes, temp, vertices); // use function temporarily 
-	for(int i=dag->out_deg_list[src]; i<dag->out_deg_list[src+1]; i++){
-		if(dag->outs[i]==dst){
+
+	dag->out_deg[indexes[0]]--;
+	for(int i=dag->out_deg_list[indexes[0]]; i<dag->out_deg_list[indexes[0]+1]; i++){
+		if(dag->outs[i]==indexes[1]){
 			dag->outs[i]=-1;
 			break;
 		}
 	}
+
+	dag->in_deg[indexes[1]]--;
 	for(int i=dag->in_deg_list[dst]; i<dag->in_deg_list[dst+1]; i++){
 		if(dag->ins[i]==src){
 			dag->ins[i]=-1;
 			break;
 		}
 	}
-	
+
 	int *temp_indegs, temp_outdeg;
 
 	//currently doing one by one, should discuss and look how to overall deletion
-	Find_unreachable(Pnode, indexes, 2){
+	int* unreachable;
+	int count = Find_unreachable(Pnode, indexes, 2, unreachable);
+	while(count>0){
+		if(Pnode->parent!=NULL){
+			tree_update(unreachable, count, Pnode);
+		}
+		else{
+			//TO:DO create new tree
+		}
 	}
 }

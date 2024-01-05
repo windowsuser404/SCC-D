@@ -7,14 +7,18 @@ struct scc_tree;
 struct DAG{
 	int* outs;
 	int* ins;
-	int* in_deg_list;
+	int* in_deg_list; //to store indexes to start searching
 	int* out_deg_list;
+	int* in_deg; // to store actual value of degs, TO:DO 
+	int* out_deg;
 	int* vertices;
 	int edge_no;
 	int vert_no
 };
 
 struct tree_node{
+	int childs;
+	tree_node** children; //ensure same order or tree in both vertices and here
         int scc_node;
 	int depth;
         tree_node* parent;
@@ -77,8 +81,14 @@ DAG* split_and_condense(int root_node, int Nverts, int* vertices, int*& scc_map,
 			}
 		}
 	}
+	int* DAG_out_degs = new int[scc_no];
+	int* DAG_in_degs = new int[scc_no];
+	copy(out_edge_counts+1, out_edge_counts+scc_no+1, DAG_out_degs);
+	copy(in_edge_counts+1, in_edge_counts+scc_no+1, DAG_in_degs);
+	dag->out_deg = DAG_out_degs;
+	dag->in_deg = DAG_in_degs;
 
-	int* DAG_out = new int[edges];
+	int* DAG_out = new int[edges]; // 
 	temp_counts[0] = 0;
 	for(int i=0; i<scc_no; i++){
 		out_edge_counts[i+1] = out_edge_counts[i+1] + out_edge_counts[i];
