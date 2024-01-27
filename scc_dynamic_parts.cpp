@@ -1,6 +1,9 @@
 #include "scc_insert.cpp"
 #include <iostream>
 #include <string>
+#include <vector>
+#include <unordered_set>
+#include <pair>
 
 void printgraph(graph g, int* scc_maps, int* scc_index, int* inverse_scc){
 #if DEBUG
@@ -200,11 +203,23 @@ void edge_insertion(graph& g, FILE* file, int* insertsrc_avail, int* insertdst_a
 void edge_deletion(graph& g, FILE* file, int* insertsrc_avail, int* insertdst_avail, int& inserts){
 	// get data structure needed for deletion, those trees
 	// updating csr part
+	unordered_set<pait<int, int>> deleted_edges; // TO:DO define has functions to take care of deleted edges
+	int* out_queue; //to store the vertices whose out edges needs to be searched 
+	int* in_queue; //to store the vertices whose in edges needs to be searched
+	vector<int> temp_out_q;
+	vector<int> temp_in_q;
 	char op;
 	int src, dst, found;
 	// deleting for diff csr
 	while(fscanf(file, "%c%*[ \t]%d%*[ \t]%d%*[\n]", &op, &src, &dst) == 3){
 		if(op=='d'){
+
+			deleted_edges.insert(make_pair(src, dst)); // takes care of deleted edges
+			if(scc[dst]==scc[src]){ //if part of same scc, can lead to break down
+				temp_out_q.push_back(dst);
+				temp_in_q.push_back(src);
+			}
+
 			printf("Line has %d -> %d\n",src,dst);
 			//changing in "out" side
 			int out_deg = out_degree(g, src);
@@ -242,8 +257,17 @@ void edge_deletion(graph& g, FILE* file, int* insertsrc_avail, int* insertdst_av
 			printf("Adding one to inserts:%d\n",inserts);
 #endif
 			inserts++;
-		}	
+		}
+	out_queue = new int[temp_out_q.size()];
+	in_queue = new int[temp_in_q.size()];
 	}
+	for(int i=0; i<temp_out_q.size(); i++){
+		out_queue[i] = temp_out_q[i];
+	}
+	for(int i=0; i<temp_in_q.size(); i++){
+		in_queue[i] = temp_in_q[i];
+	}
+	naive_delete(deleted_edges, g, out_queue, in_queue);
 }
 
 void dynamic(graph& g, int verts, int* scc_maps){

@@ -80,6 +80,10 @@ typedef struct graph {
   int* in_array;
   unsigned* out_degree_list;
   unsigned* in_degree_list;
+  int scc_count; // no.of scc's
+  int* scc_map;
+  int* rep_nodes; // array keeping count in 
+  int* count_in_sccs; //
 } graph;
 #define out_degree(g, n) (g.out_degree_list[n+1] - g.out_degree_list[n])
 #define in_degree(g, n) (g.in_degree_list[n+1] - g.in_degree_list[n])
@@ -367,6 +371,30 @@ void print_scc(int* scc_maps, graph& g){
         }
 }
 
+void update_g_with_scc(graph*& g){
+	int scc_count=0;
+	int* scc_map = g.scc_map;
+	int* rep;
+	int* counts;
+	unordered_map<int, int> temp_indexes;
+	for(int i=0; i<g.n; i++){
+		if(temp_indexes.find(scc_map[i])==temp_indexes.end()){
+			temp_indexes[scc_map[i]] = count++;
+		}
+	}
+	rep = new int[scc_count];
+	counts = new int[scc_counts];
+	for(int i=0; i<scc_count; i++){
+		counts[i] = 0;
+	}
+	for(int i=0; i<g.n; i++){
+		rep[temp_indexes[scc_map[i]]] = scc_map[i];
+		counts[temp_indexes[scc_map[i]]]++;
+	}
+	g.scc_count = scc_count;
+	g.rep_nodes = rep;
+	g.couny_in_sccs = counts;
+}
 
 int main(int argc, char** argv)
 {
@@ -411,7 +439,7 @@ int main(int argc, char** argv)
     out_array, in_array,
     out_degree_list, in_degree_list,
     max_deg_vert, avg_degree);
-  graph g = {n, m, out_array, in_array, out_degree_list, in_degree_list};
+  graph g = {n, m, out_array, in_array, out_degree_list, in_degree_list, 0, NULL, NULL, NULL}; //keeping NULL at start to create the obejct
   delete [] srcs;
   delete [] dsts;
 
@@ -448,6 +476,13 @@ int main(int argc, char** argv)
 #if PRINTSCC
   print_scc(scc_maps, g);
 #endif
+
+  
+//////////////////////////////////////////
+  g.scc_map = scc_maps;
+  update_g_with_scc(g);
+
+//////////////////////////////////////////
 //////////////////////////////////////////
 
   dynamic(g, g.n, scc_maps);
