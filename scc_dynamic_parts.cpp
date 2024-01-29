@@ -1,9 +1,6 @@
 #include "scc_insert.cpp"
+#include "scc_delete.cpp"
 #include <iostream>
-#include <string>
-#include <vector>
-#include <unordered_set>
-#include <pair>
 
 void printgraph(graph g, int* scc_maps, int* scc_index, int* inverse_scc){
 #if DEBUG
@@ -203,7 +200,7 @@ void edge_insertion(graph& g, FILE* file, int* insertsrc_avail, int* insertdst_a
 void edge_deletion(graph& g, FILE* file, int* insertsrc_avail, int* insertdst_avail, int& inserts){
 	// get data structure needed for deletion, those trees
 	// updating csr part
-	unordered_set<pait<int, int>> deleted_edges; // TO:DO define has functions to take care of deleted edges
+	del_set deleted_edges; // TO:DO define has functions to take care of deleted edges
 	int* out_queue; //to store the vertices whose out edges needs to be searched 
 	int* in_queue; //to store the vertices whose in edges needs to be searched
 	vector<int> temp_out_q;
@@ -213,15 +210,18 @@ void edge_deletion(graph& g, FILE* file, int* insertsrc_avail, int* insertdst_av
 	// deleting for diff csr
 	while(fscanf(file, "%c%*[ \t]%d%*[ \t]%d%*[\n]", &op, &src, &dst) == 3){
 		if(op=='d'){
-
 			deleted_edges.insert(make_pair(src, dst)); // takes care of deleted edges
-			if(scc[dst]==scc[src]){ //if part of same scc, can lead to break down
+			if(g.scc_map[dst]==g.scc_map[src]){ //if part of same scc, can lead to break down
 				temp_out_q.push_back(dst);
 				temp_in_q.push_back(src);
 			}
 
-			printf("Line has %d -> %d\n",src,dst);
+			printf("Line has to delete %d -> %d\n",src,dst);
 			//changing in "out" side
+#if DEBUG
+			printf("Starting with deleting an edge\n");
+#endif
+
 			int out_deg = out_degree(g, src);
 			int* out_verts = out_vertices(g, src);
 			found = 0;
@@ -250,10 +250,13 @@ void edge_deletion(graph& g, FILE* file, int* insertsrc_avail, int* insertdst_av
 					insertdst_avail[dst]++;
 				}
 			}
+#if DEBUG
+			printf("Done with deleting an edge\n");
+#endif
 		}
 		else{
 #if DEBUG
-			printf("Dedected line %c %d %d\n",op,src,dst);
+			printf("Dedected line to add %d %d\n",op,src,dst);
 			printf("Adding one to inserts:%d\n",inserts);
 #endif
 			inserts++;
@@ -267,17 +270,23 @@ void edge_deletion(graph& g, FILE* file, int* insertsrc_avail, int* insertdst_av
 	for(int i=0; i<temp_in_q.size(); i++){
 		in_queue[i] = temp_in_q[i];
 	}
-	naive_delete(deleted_edges, g, out_queue, in_queue);
+#if DEBUG
+	printf("Starting with deletion\n");
+#endif
+	naive_delete(deleted_edges, g, out_queue, in_queue, temp_in_q.size());
+#if DEBUG
+	printf("Done with deletion\n");
+#endif
 }
 
 void dynamic(graph& g, int verts, int* scc_maps){
 	while(true){
-		int inserts;
-		string file_name ;//= "test.update"; //should add bound check later
+		int inserts=0;
+		string file_name= "test.update"; //should add bound check later
 		int* insertsrc_avail = new int[verts]; // array to count insertions available, might be useful in insertion of edges
 		int* insertdst_avail = new int[verts]; // same but for dsts
-		printf("Enter the new file name: ");
-		getline(cin, file_name, '\n');
+		//printf("Enter the new file name: ");
+		//getline(cin, file_name, '\n');
 		cout << "file being opened"+file_name+"\n";
 		//FILE* file = fopen(file_name.c_str(),"r");
 		double start = omp_get_wtime();

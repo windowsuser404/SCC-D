@@ -55,11 +55,11 @@ using namespace std;
 #include <omp.h>
 
 #define VERBOSE 1
-#define DEBUG 0
+#define DEBUG 1
 #define VERIFY 1
 #define TIMING 1
 #define TRIM_LEVEL 1
-#define PRINTSCC 0
+#define PRINTSCC 1
 
 #define THREAD_QUEUE_SIZE 2048
 #define ALPHA 15.0
@@ -371,19 +371,21 @@ void print_scc(int* scc_maps, graph& g){
         }
 }
 
-void update_g_with_scc(graph*& g){
+void update_g_with_scc(graph& g){
 	int scc_count=0;
 	int* scc_map = g.scc_map;
 	int* rep;
 	int* counts;
+	int curr_index = 0;
 	unordered_map<int, int> temp_indexes;
 	for(int i=0; i<g.n; i++){
 		if(temp_indexes.find(scc_map[i])==temp_indexes.end()){
-			temp_indexes[scc_map[i]] = count++;
+			temp_indexes[scc_map[i]] = curr_index++;
+			scc_count++;
 		}
 	}
 	rep = new int[scc_count];
-	counts = new int[scc_counts];
+	counts = new int[scc_count];
 	for(int i=0; i<scc_count; i++){
 		counts[i] = 0;
 	}
@@ -393,7 +395,7 @@ void update_g_with_scc(graph*& g){
 	}
 	g.scc_count = scc_count;
 	g.rep_nodes = rep;
-	g.couny_in_sccs = counts;
+	g.count_in_sccs = counts;
 }
 
 int main(int argc, char** argv)

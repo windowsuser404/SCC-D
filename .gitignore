@@ -2,6 +2,8 @@ cc*
 test*
 results_dump
 scc
+*txt
+*sh
 decremental_cpu.cpp
 to_do_list
-temp_files/
+to_be_ignored/
