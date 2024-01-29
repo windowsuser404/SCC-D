@@ -409,7 +409,7 @@ bool* scc_fwbw_bw(graph& g, bool* valid, bool* fw,
 }
 
 
-int update_valid(graph& g, bool* valid, bool* scc, 
+int update_valid(graph& g, bool* valid, bool*& scc, 
   int*& valid_verts, int& num_valid,
   int* scc_maps, int root)
 {  

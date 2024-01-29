@@ -243,9 +243,9 @@ int* con_scc_color_get_roots(graph& g, int* valid,
   return roots;  
 }
 
-void con_scc_color_find_sccs(graph& g, int* valid, 
+void con_scc_color_find_sccs(graph& g, int*& valid, 
   int* colors, int* roots, int num_roots,
-  int* valid_verts, int num_valid,
+  int*& valid_verts, int num_valid,
   int* scc_maps, int* scc_index, int* scc_diff_in, unsigned int* scc_diff_indeg_list)
 {
   //int num_verts = g.n;
@@ -347,7 +347,7 @@ void con_scc_color_find_sccs(graph& g, int* valid,
 }
 
 
-void con_scc_update_valid(graph& g, int* valid, 
+void con_scc_update_valid(graph& g, int*& valid, 
   int*& valid_verts, int& num_valid)
 {  
   int new_num_valid = 0;
@@ -395,7 +395,7 @@ void con_scc_update_valid(graph& g, int* valid,
 }
 
 
-int con_scc_color(graph& g, int* valid, int* valid_verts, int* scc_maps, int* scc_index, int* inverse_scc, int* scc_diff_out, int* scc_diff_in, unsigned int* scc_diff_outdeg_list, unsigned int* scc_diff_indeg_list)
+int con_scc_color(graph& g, int*& valid, int*& valid_verts, int* scc_maps, int* scc_index, int* inverse_scc, int* scc_diff_out, int* scc_diff_in, unsigned int* scc_diff_outdeg_list, unsigned int* scc_diff_indeg_list)
 {
   int num_scc = 0;
   int num_roots = 0;

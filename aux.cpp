@@ -17,3 +17,13 @@ int find_index(int to_find, int* arr, int arr_siz){
 	}
 	return index;
 }
+
+void clear_graph(graph& g){
+	delete [] g.out_array;
+	delete [] g.in_array;
+	delete [] g.out_degree_list;
+	delete [] g.in_degree_list;
+	delete [] g.scc_map;
+	delete [] g.rep_nodes;
+	delete [] g.count_in_sccs;
+}

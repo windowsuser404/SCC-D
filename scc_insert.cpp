@@ -74,4 +74,6 @@ void condense_scc_update(graph& g, int* scc_maps, int* scc_index, int* inverse_s
 		valid_verts[i]=i;
 	}
 	con_scc_color(g, valid, valid_verts, scc_maps, scc_index, inverse_scc, scc_diff_out, scc_diff_in, scc_diff_outdeg_list, scc_diff_indeg_list);
+	delete [] valid;
+	delete [] valid_verts;
 }

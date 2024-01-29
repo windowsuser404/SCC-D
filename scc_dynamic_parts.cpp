@@ -43,7 +43,7 @@ void edge_insertion(graph& g, FILE* file, int* insertsrc_avail, int* insertdst_a
          printf("%d\n",scc_inarr[i]);
         }
         printf("\n\n");
-       printf("\n\noutarray at %p\n",&scc_outarr);
+        printf("\n\noutarray at %p\n",&scc_outarr);
         for(int i=0;i<condensed_edges;i++){
          printf("%d\n",scc_outarr[i]);
         }
@@ -137,8 +137,8 @@ void edge_insertion(graph& g, FILE* file, int* insertsrc_avail, int* insertdst_a
 
 	printf("diff csr updated\n");
 
-	int* placeholder1 = new int[inserts];
-	unsigned int* placeholder2 = new unsigned int[inserts];
+	int* placeholder1; 
+	unsigned int* placeholder2;
 	int* diff_out_vert;
 	unsigned int* diff_outdeg_list;
 	int* diff_in_verts;
@@ -151,6 +151,9 @@ void edge_insertion(graph& g, FILE* file, int* insertsrc_avail, int* insertdst_a
 	new_create_csr(num_verts, extra_out, diff_out_src, 
 			diff_out_dst, diff_out_vert, placeholder1, 
 			diff_outdeg_list, placeholder2);
+
+	delete [] placeholder1;
+	delete [] placeholder2;
 #if DEBUG
 	printf("Line 95\n");
 #endif
@@ -164,6 +167,7 @@ void edge_insertion(graph& g, FILE* file, int* insertsrc_avail, int* insertdst_a
 
 	delete [] placeholder1;
 	delete [] placeholder2;
+
 	delete [] diff_out_src;
 	delete [] diff_out_dst;
 	delete [] diff_in_src;
@@ -193,8 +197,13 @@ void edge_insertion(graph& g, FILE* file, int* insertsrc_avail, int* insertdst_a
         delete [] scc_diff_indeg_list;
         delete [] scc_diff_out;
         delete [] scc_diff_in;
+	delete [] diff_out_vert;
+	delete [] diff_in_verts;
+	delete [] diff_outdeg_list;
+	delete [] diff_indeg_list;
 	delete [] inverse_scc;
 	delete [] scc_index;
+	clear_graph(condensed_g);
 }
 
 void edge_deletion(graph& g, FILE* file, int* insertsrc_avail, int* insertdst_avail, int& inserts){
@@ -215,8 +224,9 @@ void edge_deletion(graph& g, FILE* file, int* insertsrc_avail, int* insertdst_av
 				temp_out_q.push_back(dst);
 				temp_in_q.push_back(src);
 			}
-
+#if DEBUG
 			printf("Line has to delete %d -> %d\n",src,dst);
+#endif
 			//changing in "out" side
 #if DEBUG
 			printf("Starting with deleting an edge\n");
@@ -230,7 +240,7 @@ void edge_deletion(graph& g, FILE* file, int* insertsrc_avail, int* insertdst_av
 					break; //might be useful later
 				}
 				if(out_verts[i]==dst){
-					out_verts[i] = -1;
+					//out_verts[i] = -1; //will do it later as it causes issues
 					found = 1;
 					insertsrc_avail[src]++;	
 				}
@@ -245,7 +255,7 @@ void edge_deletion(graph& g, FILE* file, int* insertsrc_avail, int* insertdst_av
 					break;
 				}
 				if(in_verts[i]==src){
-					in_verts[i] = -1;
+					//in_verts[i] = -1; //will add later
 					found = 1;
 					insertdst_avail[dst]++;
 				}
@@ -261,19 +271,27 @@ void edge_deletion(graph& g, FILE* file, int* insertsrc_avail, int* insertdst_av
 #endif
 			inserts++;
 		}
-	out_queue = new int[temp_out_q.size()];
-	in_queue = new int[temp_in_q.size()];
 	}
+
+	int tmp_q_size = temp_out_q.size();
+	out_queue = new int[tmp_q_size];
+	in_queue = new int[tmp_q_size];
+
 	for(int i=0; i<temp_out_q.size(); i++){
 		out_queue[i] = temp_out_q[i];
 	}
 	for(int i=0; i<temp_in_q.size(); i++){
 		in_queue[i] = temp_in_q[i];
 	}
+	
 #if DEBUG
 	printf("Starting with deletion\n");
 #endif
 	naive_delete(deleted_edges, g, out_queue, in_queue, temp_in_q.size());
+
+	delete [] out_queue;
+	delete [] in_queue;
+
 #if DEBUG
 	printf("Done with deletion\n");
 #endif
@@ -282,15 +300,19 @@ void edge_deletion(graph& g, FILE* file, int* insertsrc_avail, int* insertdst_av
 void dynamic(graph& g, int verts, int* scc_maps){
 	while(true){
 		int inserts=0;
-		string file_name= "test.update"; //should add bound check later
+		string file_name;//= "test.update"; //should add bound check later
 		int* insertsrc_avail = new int[verts]; // array to count insertions available, might be useful in insertion of edges
 		int* insertdst_avail = new int[verts]; // same but for dsts
-		//printf("Enter the new file name: ");
-		//getline(cin, file_name, '\n');
+		printf("Enter the new file name: ");
+		getline(cin, file_name, '\n');
 		cout << "file being opened"+file_name+"\n";
-		//FILE* file = fopen(file_name.c_str(),"r");
+		FILE* file = fopen(file_name.c_str(),"r");
+		if(NULL == file){
+			printf("File unable to open\n");
+			exit(0);
+		}
 		double start = omp_get_wtime();
-		FILE* file = fopen("test.update","r");
+	//	FILE* file = fopen("test.update","r");
 		if(file){
 			printf("file opening successful\n");
 		}
@@ -313,6 +335,8 @@ void dynamic(graph& g, int verts, int* scc_maps){
 		edge_insertion(g, file, insertsrc_avail, insertdst_avail, inserts, verts, scc_maps);
 		double end = omp_get_wtime();
 		printf("\n\nUpdated in %f secs\n\n",end-start);
+		delete [] insertsrc_avail;
+		delete [] insertdst_avail;
 		break;
 	}
 }

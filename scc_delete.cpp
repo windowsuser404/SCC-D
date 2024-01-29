@@ -8,6 +8,10 @@ void fw_propagate(int rep_node, graph& g, int* reachable, int* fw_reach, del_set
 	int temp_size = g.count_in_sccs[find_index(rep_node, g.rep_nodes, g.scc_count)];
 	int* queue = new int[temp_size]; //assuming scc_counts will give the number of verts
 	int* next_queue = new int[temp_size];
+
+#if DEBUG
+	printf("Allocated queues sucessfully of size %d\n", temp_size);
+#endif
 	int q_size=0, nxt_q_size=0;
 	queue[0] = rep_node;
 	q_size++;
@@ -16,6 +20,9 @@ void fw_propagate(int rep_node, graph& g, int* reachable, int* fw_reach, del_set
 			int vert = queue[i];
 			//reachable[vert] = 1;
 			if(g.scc_map[vert]==g.scc_map[rep_node]){ // ensure only scc rep can change fw node
+#if DEBUG
+//				printf("Marking %d fw_reachable from %d\n",vert, rep_node);
+#endif
 				fw_reach[vert] = rep_node;
 			}
 			int Odeg = out_degree(g, vert); 
@@ -75,22 +82,16 @@ void bw_propagate(int rep_node, graph& g, int* reachable, int* fw_arr, int& unaf
 }
 
 void search(int rep_node, graph& g, int* reachable, int* fw_arr, int& unaffected, del_set& deleted_edges){
-#if DEBUG
 	printf("Starting to search %d \n", rep_node);
-#endif
 	fw_propagate(rep_node, g, reachable, fw_arr, deleted_edges);
 	bw_propagate(rep_node, g, reachable, fw_arr, unaffected, deleted_edges);
-#if DEBUG
 	printf("finished search \n");
-#endif
 }
 
-void naive_delete(del_set& deleted_edges, graph& g, int* out_q, int* in_q, int q_size){//for now not using * _q arrays
+void naive_delete(del_set& deleted_edges, graph& g, int*& out_q, int*& in_q, int q_size){//for now not using * _q arrays
 //	int* out_processed = new int[g.n];
 //	int* in_processed = new int[g.n];
-#if DEBUG
 	printf("Start naive\n");
-#endif
 	int* reachable = new int[g.n];// to check if they are still part of scc
 	int* fw_reach = new int[g.n]; //useful to take into account all vertices that can be reached from rep_node
 				      
@@ -126,9 +127,9 @@ void naive_delete(del_set& deleted_edges, graph& g, int* out_q, int* in_q, int q
 	printf("fw_reach = %p\n",fw_reach);
 #endif
 	delete [] fw_reach;
+	delete [] unreachable;
+	delete [] reachable;
 #if DEBUG
 	printf("Finished naive\n");
 #endif
-
-	delete [] reachable;
 }

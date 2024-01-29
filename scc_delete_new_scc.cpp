@@ -57,8 +57,8 @@ void fw_new(int node, graph& g, int* fw_reach, int* reachable, del_set deleted_e
 #if DEBUG
 	printf("done fw search\n");
 #endif
-	delete queue;
-	delete nxt_queue;
+	delete [] queue;
+	delete [] nxt_queue;
 }
 
 void find_scc(int node, int* to_change, int& num_changed, graph& g, int* reachable, del_set& deleted_edges, int* fw_reach){ //will return the list of verts that needs scc changed
@@ -92,23 +92,30 @@ void find_scc(int node, int* to_change, int& num_changed, graph& g, int* reachab
 		nxt_q_size=0;
 	}
 
-	delete queue;
-	delete nxt_queue;
+	delete [] queue;
+	delete [] nxt_queue;
 }
 
 void update_sccs(int vert, int* to_change, int size, graph& g){
 #if DEBUG
 	printf("updating scc for %d\n", vert);
 #endif
+	
+	g.count_in_sccs[find_index(g.scc_map[vert], g.rep_nodes, g.scc_count)] -= size; //reducing the number of scc nodes
+	g.scc_count++;
+
 	for(int i=0; i<size; i++){
 		g.scc_map[to_change[i]] = vert;
 	}
+	g.rep_nodes[g.scc_count] = vert;
+	g.count_in_sccs[g.scc_count] = size;
 }
 
 void make_scc(int vert, graph& g, int* fw_reach, int* reachable, del_set deleted_edges){
 #if DEBUG
 	printf("Starting to make scc of vertex %d\n", vert);
 #endif
+	printf("Starting to make scc of vertex %d\n", vert);
 	fw_new(vert, g, fw_reach, reachable, deleted_edges);
 	int num_changed=0;
 	int* to_change = new int[g.count_in_sccs[find_index(g.scc_map[vert], g.rep_nodes, g.scc_count)]]; //TO:DO will decide size
@@ -121,16 +128,12 @@ void make_scc(int vert, graph& g, int* fw_reach, int* reachable, del_set deleted
 }
 
 void create_new_sccs(int* unreachable_verts, int* reachable, int& num_vrts, graph& g, int* fw_reach, del_set deleted_edges){ // currently we go vertex by vertex and form a new scc for that particular vertex
-#if DEBUG
 	printf("starting to create new sccs\n");
-#endif
 	for(int i=0; i<num_vrts; i++){ // this part not yet to parallelise due to potential conflict in forward update
 		int vert = unreachable_verts[i];
 		if(!reachable[vert]){
 			make_scc(vert, g, fw_reach, reachable, deleted_edges);
 		}
 	}
-#if DEBUG
 	printf("Finished creating new sccs\n");
-#endif
 }

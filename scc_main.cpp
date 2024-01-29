@@ -55,11 +55,11 @@ using namespace std;
 #include <omp.h>
 
 #define VERBOSE 1
-#define DEBUG 1
+#define DEBUG 0
 #define VERIFY 1
 #define TIMING 1
 #define TRIM_LEVEL 1
-#define PRINTSCC 1
+#define PRINTSCC 0
 
 #define THREAD_QUEUE_SIZE 2048
 #define ALPHA 15.0
@@ -96,7 +96,6 @@ typedef struct graph {
 #include "scc_serial.cpp"
 #include "scc_verify.cpp"
 #include "scc_dynamic_parts.cpp"
-
 
 int common_read_edge(char* filename,
   int& n, unsigned& m,
@@ -363,6 +362,8 @@ else if (TRIM_LEVEL == 2)
   printf("TOTAL: %9.6lf\n", start_time);
 #endif
 
+ delete [] valid;
+ delete [] valid_verts;
 }
 
 void print_scc(int* scc_maps, graph& g){
@@ -384,9 +385,13 @@ void update_g_with_scc(graph& g){
 			scc_count++;
 		}
 	}
-	rep = new int[scc_count];
-	counts = new int[scc_count];
-	for(int i=0; i<scc_count; i++){
+	// making it temporarily g.n, will see if realloncation can be done starting with smaller arrays
+//	rep = new int[scc_count];
+//	counts = new int[scc_count];
+	rep = new int[g.n];
+	counts = new int[g.n];
+
+	for(int i=0; i<g.n; i++){
 		counts[i] = 0;
 	}
 	for(int i=0; i<g.n; i++){
@@ -499,9 +504,7 @@ int main(int argc, char** argv)
   print_scc(scc_maps, g);
 #endif
 
-  delete [] out_array;
-  delete [] out_degree_list;
-  delete [] scc_maps;
+  clear_graph(g);
 
   return 0;
 }
