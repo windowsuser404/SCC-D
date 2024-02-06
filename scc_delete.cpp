@@ -14,29 +14,35 @@ void fw_propagate(int rep_node, graph& g, int* reachable, int* fw_reach, del_set
 #endif
 	int q_size=0, nxt_q_size=0;
 	queue[0] = rep_node;
+	fw_reach[rep_node] = rep_node;
 	q_size++;
 	while(q_size){
 		for(int i=0; i<q_size; i++){
 			int vert = queue[i];
 			//reachable[vert] = 1;
-			if(g.scc_map[vert]==g.scc_map[rep_node]){ // ensure only scc rep can change fw node
-#if DEBUG
-//				printf("Marking %d fw_reachable from %d\n",vert, rep_node);
-#endif
-				fw_reach[vert] = rep_node;
-			}
 			int Odeg = out_degree(g, vert); 
 			int* Overts = out_vertices(g, vert);
 			for(int j=0; j<Odeg; j++){
 				int nVert = Overts[j];
 				if((-1==fw_reach[nVert]) and (g.scc_map[nVert]==g.scc_map[rep_node]) and not_deleted(vert, nVert, deleted_edges)){ //checking for -1 as only rep_node is propagating hence other nodes cant come here
 					next_queue[nxt_q_size++] = nVert;
+#if DEBUG
+//				printf("Marking %d fw_reachable from %d\n",vert, rep_node);
+#endif
+					fw_reach[nVert] = rep_node;
 				}
 			}
 		}
 		q_size = nxt_q_size;
 		swap(queue, next_queue);
 		nxt_q_size = 0;
+#if DEBUG
+		printf("Doing next a queue of size %d in fw_new function\n", q_size);
+		if(q_size>temp_size){
+			printf("\n\n size execeeded \n\n");
+			exit(1);
+		}
+#endif
 	}
 	delete [] queue;
 	delete [] next_queue;
@@ -52,6 +58,7 @@ void bw_propagate(int rep_node, graph& g, int* reachable, int* fw_arr, int& unaf
 	int* queue = new int[temp_size]; //assuming scc_counts will give the number of verts
 	int* next_queue = new int[temp_size];
 	int q_size=0, nxt_q_size=0;
+	reachable[rep_node] = 1;
 	queue[0] = rep_node;
 	q_size++;
 
@@ -59,13 +66,13 @@ void bw_propagate(int rep_node, graph& g, int* reachable, int* fw_arr, int& unaf
 		for(int i=0; i<q_size; i++){
 			unaffected++;
 			int vert = queue[i];
-			reachable[vert] = 1;
 			int Ideg = in_degree(g, vert);
 			int* Iverts = in_vertices(g, vert);
 			for(int j=0; j<Ideg; j++){
 				int nVert = Iverts[j];
 				if(scc_map[rep_node]==scc_map[nVert] and rep_node==fw_arr[nVert] and not_deleted(nVert, vert, deleted_edges) and !reachable[nVert]){
 					next_queue[nxt_q_size++] = nVert;
+					reachable[nVert] = 1;
 #if DEBUG
 					printf("Marking %d as reachable as it still belongs to %d scc\n",nVert,rep_node);
 #endif
@@ -75,6 +82,13 @@ void bw_propagate(int rep_node, graph& g, int* reachable, int* fw_arr, int& unaf
 		swap(queue, next_queue);
 		q_size = nxt_q_size;
 		nxt_q_size=0;
+#if DEBUG
+		printf("Doing next a queue of size %d in fw_new function\n", q_size);
+		if(q_size>temp_size){
+			printf("\n\n size execeeded \n\n");
+			exit(1);
+		}
+#endif
 	}
 
 	delete [] queue;
@@ -82,17 +96,21 @@ void bw_propagate(int rep_node, graph& g, int* reachable, int* fw_arr, int& unaf
 }
 
 void search(int rep_node, graph& g, int* reachable, int* fw_arr, int& unaffected, del_set& deleted_edges){
+#if DEBUG
 	printf("Starting to search %d \n", rep_node);
+#endif
 	fw_propagate(rep_node, g, reachable, fw_arr, deleted_edges);
 	bw_propagate(rep_node, g, reachable, fw_arr, unaffected, deleted_edges);
+#if DEBUG
 	printf("finished search \n");
+#endif
 }
 
 void naive_delete(del_set& deleted_edges, graph& g, int*& out_q, int*& in_q, int q_size){//for now not using * _q arrays
 //	int* out_processed = new int[g.n];
 //	int* in_processed = new int[g.n];
 	printf("Start naive\n");
-	int* reachable = new int[g.n];// to check if they are still part of scc
+	int* reachable = new int[g.n];// to check if they are part of an scc (could be formed later or retained in an scc)
 	int* fw_reach = new int[g.n]; //useful to take into account all vertices that can be reached from rep_node
 				      
 #if DEBUG

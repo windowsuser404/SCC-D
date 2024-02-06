@@ -54,10 +54,11 @@ using namespace std;
 #include <vector>
 #include <omp.h>
 
-#define VERBOSE 1
+#define VERBOSE 0
 #define DEBUG 0
-#define VERIFY 1
-#define TIMING 1
+#define FULL_DEBUG 0
+#define VERIFY 0
+#define TIMING 0
 #define TRIM_LEVEL 1
 #define PRINTSCC 0
 
@@ -491,14 +492,17 @@ int main(int argc, char** argv)
 
 //////////////////////////////////////////
 //////////////////////////////////////////
+  start = omp_get_wtime();
+  dynamic(g, g.n, scc_maps, argv[2]);
+  end = omp_get_wtime();
 
-  dynamic(g, g.n, scc_maps);
+  printf("\n\n Fully update in %f secs \n\n",end-start);
 
 //////////////////////////////////////////
 
 
-  if (argc == 3)
-    output_scc(g, scc_maps, argv[2]);
+  /*if (argc == 3)
+    output_scc(g, scc_maps, argv[2]);*/
 
 #if PRINTSCC 
   print_scc(scc_maps, g);

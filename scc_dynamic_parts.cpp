@@ -224,11 +224,11 @@ void edge_deletion(graph& g, FILE* file, int* insertsrc_avail, int* insertdst_av
 				temp_out_q.push_back(dst);
 				temp_in_q.push_back(src);
 			}
-#if DEBUG
+#if FULL_DEBUG
 			printf("Line has to delete %d -> %d\n",src,dst);
 #endif
 			//changing in "out" side
-#if DEBUG
+#if FULL_DEBUG
 			printf("Starting with deleting an edge\n");
 #endif
 
@@ -260,12 +260,12 @@ void edge_deletion(graph& g, FILE* file, int* insertsrc_avail, int* insertdst_av
 					insertdst_avail[dst]++;
 				}
 			}
-#if DEBUG
+#if FULL_DEBUG
 			printf("Done with deleting an edge\n");
 #endif
 		}
 		else{
-#if DEBUG
+#if FULL_DEBUG
 			printf("Dedected line to add %d %d\n",op,src,dst);
 			printf("Adding one to inserts:%d\n",inserts);
 #endif
@@ -297,21 +297,20 @@ void edge_deletion(graph& g, FILE* file, int* insertsrc_avail, int* insertdst_av
 #endif
 }
 
-void dynamic(graph& g, int verts, int* scc_maps){
+void dynamic(graph& g, int verts, int* scc_maps, char* u_file){
 	while(true){
 		int inserts=0;
-		string file_name;//= "test.update"; //should add bound check later
+		//string file_name;//= "test.update"; //should add bound check later
 		int* insertsrc_avail = new int[verts]; // array to count insertions available, might be useful in insertion of edges
 		int* insertdst_avail = new int[verts]; // same but for dsts
-		printf("Enter the new file name: ");
-		getline(cin, file_name, '\n');
-		cout << "file being opened"+file_name+"\n";
-		FILE* file = fopen(file_name.c_str(),"r");
+		//printf("Enter the new file name: ");
+		//getline(cin, file_name, '\n');
+		printf("file being opened : %s\n", u_file);
+		FILE* file = fopen(u_file,"r");
 		if(NULL == file){
 			printf("File unable to open\n");
 			exit(0);
 		}
-		double start = omp_get_wtime();
 	//	FILE* file = fopen("test.update","r");
 		if(file){
 			printf("file opening successful\n");
@@ -320,7 +319,13 @@ void dynamic(graph& g, int verts, int* scc_maps){
 			insertsrc_avail[i] = 0;
 			insertdst_avail[i] = 0;
 		}
+
+
+		double start = omp_get_wtime();
 		edge_deletion(g, file, insertsrc_avail, insertdst_avail, inserts);
+		double end = omp_get_wtime();
+		printf("\n\n Deletion done in : %f secs \n\n", end-start);
+
 		if (feof(file)) {
 			// End of file
 			printf("Reached end of file\n");;
@@ -332,8 +337,11 @@ void dynamic(graph& g, int verts, int* scc_maps){
 #if DEBUG
 		printf("%d insertions dedected\n",inserts);
 #endif
+		start = omp_get_wtime();
 		edge_insertion(g, file, insertsrc_avail, insertdst_avail, inserts, verts, scc_maps);
-		double end = omp_get_wtime();
+		end = omp_get_wtime();
+		printf("Insertion done in %f secs", end-start);
+
 		printf("\n\nUpdated in %f secs\n\n",end-start);
 		delete [] insertsrc_avail;
 		delete [] insertdst_avail;
