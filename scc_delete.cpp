@@ -13,9 +13,8 @@ void fw_propagate(int rep_node, graph& g, int* reachable, int* fw_reach, del_set
 	printf("Allocated queues sucessfully of size %d\n", temp_size);
 #endif
 	int q_size=0, nxt_q_size=0;
-	queue[0] = rep_node;
+	queue[q_size++] = rep_node;
 	fw_reach[rep_node] = rep_node;
-	q_size++;
 	while(q_size){
 		for(int i=0; i<q_size; i++){
 			int vert = queue[i];
@@ -24,7 +23,7 @@ void fw_propagate(int rep_node, graph& g, int* reachable, int* fw_reach, del_set
 			int* Overts = out_vertices(g, vert);
 			for(int j=0; j<Odeg; j++){
 				int nVert = Overts[j];
-				if((-1==fw_reach[nVert]) and (g.scc_map[nVert]==g.scc_map[rep_node]) and not_deleted(vert, nVert, deleted_edges)){ //checking for -1 as only rep_node is propagating hence other nodes cant come here
+				if((rep_node!=fw_reach[nVert]) and (g.scc_map[nVert]==g.scc_map[rep_node]) and not_deleted(vert, nVert, deleted_edges)){ //checking for -1 as only rep_node is propagating hence other nodes cant come here
 					next_queue[nxt_q_size++] = nVert;
 #if DEBUG
 //				printf("Marking %d fw_reachable from %d\n",vert, rep_node);
