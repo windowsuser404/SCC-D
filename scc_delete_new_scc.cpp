@@ -53,6 +53,9 @@ void fw_new(int& node, graph& g, int*& fw_reach, int*& reachable, del_set& delet
 				if(!reachable[nVert] and not_deleted(vert, nVert, deleted_edges) and g.scc_map[node]==g.scc_map[nVert] and fw_reach[nVert]!=node){
 					nxt_queue[nxt_q_size++] = nVert;
 					fw_reach[nVert] = node;
+#if DEBUG
+					printf("Marking %d as reachable from %d\n",nVert,node);
+#endif
 				}
 			}
 		}
@@ -88,17 +91,17 @@ void find_scc(int& node, int*& to_change, int& num_changed, graph& g, int*& reac
 	while(q_size){
 		for(int i=0; i<q_size; i++){
 			int vert = queue[i];
-#if DEBUG
-			printf("Marking %d reachable as reachable from %d\n",vert,node);
-#endif
-			reachable[vert] = 1;
-			to_change[num_changed++] = vert; //adding this vertex beacuse it needs scc change
 			int Ideg = in_degree(g, vert);
 			int* Iverts = in_vertices(g, vert);
 			for(int j=0; j<Ideg; j++){
 				int nVert = Iverts[j];
-				if(not_deleted(nVert, vert, deleted_edges) and vert==fw_reach[nVert] and !reachable[nVert]){ // last confition might be redundant
+				if(not_deleted(nVert, vert, deleted_edges) and node==fw_reach[nVert] and !reachable[nVert]){ // last confition might be redundant
 					nxt_queue[nxt_q_size++] = nVert;
+#if DEBUG
+					printf("Marking %d reachable as reachable from %d\n",vert,node);
+#endif
+					reachable[nVert] = 1;
+					to_change[num_changed++] = nVert; //adding this vertex beacuse it needs scc change
 				}
 			}
 		}
@@ -127,8 +130,13 @@ void update_sccs(int& vert, int*& to_change, int& size, graph& g){
 	g.count_in_sccs[find_index(g.scc_map[vert], g.rep_nodes, g.scc_count)] -= size; //reducing the number of scc nodes
 
 	for(int i=0; i<size; i++){
+#if DEBUG
+		printf("changing %d's scc from %d to %d\n where scc_map is at %p\n",to_change[i],g.scc_map[to_change[i]],vert,g.scc_map);
+#endif
+
 		g.scc_map[to_change[i]] = vert;
 	}
+
 	g.rep_nodes[g.scc_count] = vert;
 	g.count_in_sccs[g.scc_count] = size;
 	g.scc_count++;

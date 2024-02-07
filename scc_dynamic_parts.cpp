@@ -1,5 +1,5 @@
-#include "scc_insert.cpp"
 #include "scc_delete.cpp"
+#include "scc_insert.cpp"
 #include <iostream>
 
 void printgraph(graph g, int* scc_maps, int* scc_index, int* inverse_scc){
@@ -27,14 +27,14 @@ void printgraph(graph g, int* scc_maps, int* scc_index, int* inverse_scc){
 	printf("\n\n");
 }
 
-void edge_insertion(graph& g, FILE* file, int* insertsrc_avail, int* insertdst_avail, int& inserts, int num_verts, int* scc_maps){
+void edge_insertion(graph& g, FILE* file, int* insertsrc_avail, int* insertdst_avail, int& inserts, int num_verts, int* scc_maps, del_set& deleted_edges){
 	int root_count, condensed_edges, extra_condense_count=0;
 	int *scc_outarr, *scc_inarr, *scc_index, *inverse_scc;
 	unsigned int *scc_outdegree_list, *scc_indegree_list;
 	printf("Going to condense\n");
        	insert_condense(g, scc_maps, num_verts, g.m, scc_outarr, 
 			scc_inarr, scc_outdegree_list, scc_indegree_list, 
-			root_count, condensed_edges, scc_index, inverse_scc);	
+			root_count, condensed_edges, scc_index, inverse_scc, deleted_edges);	
 	printf("Finished condensing\n");
 
 #if DEBUG
@@ -206,10 +206,57 @@ void edge_insertion(graph& g, FILE* file, int* insertsrc_avail, int* insertdst_a
 	clear_graph(condensed_g);
 }
 
-void edge_deletion(graph& g, FILE* file, int* insertsrc_avail, int* insertdst_avail, int& inserts){
+void temp_update_function(graph& g, FILE* file){ //very redundant, should work on removing this function and passing del_set in insertion
+
+	char op;
+	int src, dst, found;
+	// deleting for diff csr
+	while(fscanf(file, "%c%*[ \t]%d%*[ \t]%d%*[\n]", &op, &src, &dst) == 3){
+		if(op=='d'){
+#if DEBUG
+			printf("Line has to delete %d -> %d\n",src,dst);
+#endif
+			//changing in "out" side
+#if DEBUG
+			printf("Starting with deleting an edge\n");
+#endif
+
+			int out_deg = out_degree(g, src);
+			int* out_verts = out_vertices(g, src);
+			found = 0;
+			for(int i=0;i<out_deg;i++){
+				if(found){
+					break; //might be useful later
+				}
+				if(out_verts[i]==dst){
+					out_verts[i] = -1; //will do it later as it causes issues
+					found = 1;
+				}
+			}
+
+			//changing in "in" side
+			int in_deg = in_degree(g, dst);
+			int* in_verts = in_vertices(g, dst);
+			found = 0;
+			for(int i=0;i<in_deg;i++){
+				if(found){
+					break;
+				}
+				if(in_verts[i]==src){
+					in_verts[i] = -1; //will add later
+					found = 1;
+				}
+			}
+#if FULL_DEBUG
+			printf("Done with deleting an edge\n");
+#endif
+		}
+	}
+}
+
+void edge_deletion(graph& g, FILE* file, int* insertsrc_avail, int* insertdst_avail, int& inserts, del_set& deleted_edges){
 	// get data structure needed for deletion, those trees
 	// updating csr part
-	del_set deleted_edges; // TO:DO define has functions to take care of deleted edges
 	int* out_queue; //to store the vertices whose out edges needs to be searched 
 	int* in_queue; //to store the vertices whose in edges needs to be searched
 	vector<int> temp_out_q;
@@ -300,6 +347,7 @@ void edge_deletion(graph& g, FILE* file, int* insertsrc_avail, int* insertdst_av
 void dynamic(graph& g, int verts, int* scc_maps, char* u_file){
 	while(true){
 		int inserts=0;
+		del_set deleted_edges; // TO:DO define has functions to take care of deleted edges
 		//string file_name;//= "test.update"; //should add bound check later
 		int* insertsrc_avail = new int[verts]; // array to count insertions available, might be useful in insertion of edges
 		int* insertdst_avail = new int[verts]; // same but for dsts
@@ -320,9 +368,8 @@ void dynamic(graph& g, int verts, int* scc_maps, char* u_file){
 			insertdst_avail[i] = 0;
 		}
 
-
 		double start = omp_get_wtime();
-		edge_deletion(g, file, insertsrc_avail, insertdst_avail, inserts);
+		edge_deletion(g, file, insertsrc_avail, insertdst_avail, inserts, deleted_edges);
 		double end = omp_get_wtime();
 		printf("\n\n Deletion done in : %f secs \n\n", end-start);
 
@@ -337,12 +384,25 @@ void dynamic(graph& g, int verts, int* scc_maps, char* u_file){
 #if DEBUG
 		printf("%d insertions dedected\n",inserts);
 #endif
+
+		//very bad piece of code, will soon remove this
+		//temp_update_function(g, file);
+		//fseek(file, 0, SEEK_SET);
+
+
 		start = omp_get_wtime();
-		edge_insertion(g, file, insertsrc_avail, insertdst_avail, inserts, verts, scc_maps);
+		edge_insertion(g, file, insertsrc_avail, insertdst_avail, inserts, verts, g.scc_map, deleted_edges);
 		end = omp_get_wtime();
 		printf("Insertion done in %f secs", end-start);
 
 		printf("\n\nUpdated in %f secs\n\n",end-start);
+
+#if DEBUG
+		for(int i=0; i<g.n; i++){
+				printf("%d scc is %d\n",i,g.scc_map[i]);
+		}
+#endif
+
 		delete [] insertsrc_avail;
 		delete [] insertdst_avail;
 		break;

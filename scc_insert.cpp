@@ -1,7 +1,9 @@
 #include "scc_diff_color.cpp"
 #include "scc_csr.cpp"
 
-void insert_condense(graph& g, int*& scc_maps, int num_verts, int edges, int*& scc_outarr, int*& scc_inarr, unsigned int*& scc_outdegree_list, unsigned int*& scc_indegree_list, int& roots, int& C_edges, int*& scc_index, int*& inverse_scc){
+//typedef unordered_set<pair<int, int>, pair_hash> del_set;
+
+void insert_condense(graph& g, int*& scc_maps, int num_verts, int edges, int*& scc_outarr, int*& scc_inarr, unsigned int*& scc_outdegree_list, unsigned int*& scc_indegree_list, int& roots, int& C_edges, int*& scc_index, int*& inverse_scc, del_set& deleted_edges){
 
 	///making the csr for condensed graph
 	scc_index = new int[num_verts]; //scc_index[index] = representative scc
@@ -27,7 +29,8 @@ void insert_condense(graph& g, int*& scc_maps, int num_verts, int edges, int*& s
 		int* out_verts = out_vertices(g, i);
 		int out_deg = out_degree(g, i);
 		for(int j=0;j<out_deg;j++){
-			if(out_verts[j]!=-1){
+			pair temp = make_pair(i, out_verts[j]);
+			if((deleted_edges.find(temp)==deleted_edges.end())){
 				if(scc_maps[i]!=scc_maps[out_verts[j]]){
 #if DEBUG
 					printf("Adding edges %d->%d, i.e in condensed %d->%d\n",i,out_verts[j],inverse_scc[scc_maps[i]], inverse_scc[scc_maps[out_verts[j]]]);

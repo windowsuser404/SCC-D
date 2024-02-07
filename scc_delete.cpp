@@ -130,7 +130,7 @@ void naive_delete(del_set& deleted_edges, graph& g, int*& out_q, int*& in_q, int
 			search(vert, g, reachable, fw_reach, unaffected, deleted_edges);
 		}
 	}
-	
+
 	int* unreachable = new int[g.n-unaffected];//array to keep list of verts that needs to be changed
 	int affected = 0;
 	for(int i=0; i<g.n; i++){
@@ -138,8 +138,15 @@ void naive_delete(del_set& deleted_edges, graph& g, int*& out_q, int*& in_q, int
 			unreachable[affected++] = i;
 		}
 	}
-	
+
+#if DEBUG
+	for(int i=0; i<affected; i++){
+			printf("%d is unreachable by original scc node %d\n",unreachable[i],g.scc_map[unreachable[i]]);
+	}
+#endif
+
 	create_new_sccs(unreachable, reachable ,affected, g, fw_reach, deleted_edges); //unreachable is array filled with changed verts (bad var names)
+																				   //
 #if DEBUG
 	printf("reachable = %p\n",reachable);
 	printf("fw_reach = %p\n",fw_reach);
@@ -147,6 +154,13 @@ void naive_delete(del_set& deleted_edges, graph& g, int*& out_q, int*& in_q, int
 	delete [] fw_reach;
 	delete [] unreachable;
 	delete [] reachable;
+
+#if DEBUG
+	for(int i=0; i<g.n; i++){
+		printf("scc of %d is %d\n",i,g.scc_map[i]);
+	}
+#endif
+
 #if DEBUG
 	printf("Finished naive\n");
 #endif

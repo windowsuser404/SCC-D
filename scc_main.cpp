@@ -55,12 +55,12 @@ using namespace std;
 #include <omp.h>
 
 #define VERBOSE 0
-#define DEBUG 0
+#define DEBUG 1
 #define FULL_DEBUG 0
 #define VERIFY 0
 #define TIMING 0
 #define TRIM_LEVEL 1
-#define PRINTSCC 0
+#define PRINTSCC 1
 
 #define THREAD_QUEUE_SIZE 2048
 #define ALPHA 15.0
@@ -367,9 +367,9 @@ else if (TRIM_LEVEL == 2)
  delete [] valid_verts;
 }
 
-void print_scc(int* scc_maps, graph& g){
+void print_scc(graph& g){
         for(int i=0; i<g.n; i++){
-                printf("SCC of vertice %d is %d\n",i,scc_maps[i]);
+                printf("SCC of vertice %d is %d\n",i,g.scc_map[i]);
         }
 }
 
@@ -481,19 +481,20 @@ int main(int argc, char** argv)
   end = omp_get_wtime();
   printf("\n\n Scc done in %f secs \n\n",end-start);
 
-#if PRINTSCC
-  print_scc(scc_maps, g);
-#endif
 
   
 //////////////////////////////////////////
   g.scc_map = scc_maps;
   update_g_with_scc(g);
+  printf("%p is address of scc_map\n",g.scc_map);
+#if PRINTSCC
+  print_scc(g);
+#endif
 
 //////////////////////////////////////////
 //////////////////////////////////////////
   start = omp_get_wtime();
-  dynamic(g, g.n, scc_maps, argv[2]);
+  dynamic(g, g.n, g.scc_map, argv[2]);
   end = omp_get_wtime();
 
   printf("\n\n Fully update in %f secs \n\n",end-start);
@@ -505,7 +506,7 @@ int main(int argc, char** argv)
     output_scc(g, scc_maps, argv[2]);*/
 
 #if PRINTSCC 
-  print_scc(scc_maps, g);
+  print_scc(g);
 #endif
 
   clear_graph(g);
