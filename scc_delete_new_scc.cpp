@@ -108,6 +108,7 @@ void find_scc(int& node, int*& to_change, int& num_changed, graph& g, int*& reac
 	int q_size=0, nxt_q_size=0;
 	queue[q_size++] = node;
 	to_change[num_changed++] = node;
+	reachable[node] = 1;
 	while(q_size){
 		for(int i=0; i<q_size; i++){
 			int vert = queue[i];
