@@ -55,12 +55,12 @@ using namespace std;
 #include <omp.h>
 
 #define VERBOSE 0
-#define DEBUG 1
+#define DEBUG 0
 #define FULL_DEBUG 0
 #define VERIFY 0
 #define TIMING 0
 #define TRIM_LEVEL 1
-#define PRINTSCC 1
+#define PRINTSCC 0
 
 #define THREAD_QUEUE_SIZE 2048
 #define ALPHA 15.0
