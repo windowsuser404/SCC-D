@@ -5,7 +5,16 @@ void fw_propagate(int rep_node, graph& g, int* reachable, int* fw_reach, del_set
 #if DEBUG
 	printf("Starting with the forwards marking from %d\n", rep_node);
 #endif
-	int temp_size = g.count_in_sccs[find_index(rep_node, g.rep_nodes, g.scc_count)];
+	int index = find_index(rep_node, g.rep_nodes, g.scc_count);
+	int temp_size = g.count_in_sccs[index];
+	try{
+		if(temp_size<0){
+			throw(temp_size);
+		}
+	}
+	catch(...){
+		printf("%d is temp_size, failed to fw_propagate,%d is the node from scc %d, %d is the index and %d is scc-count\n",temp_size,rep_node,g.scc_map[rep_node],index,g.scc_count);
+	}
 	int* queue = new int[temp_size]; //assuming scc_counts will give the number of verts
 	int* next_queue = new int[temp_size];
 
@@ -53,7 +62,16 @@ void fw_propagate(int rep_node, graph& g, int* reachable, int* fw_reach, del_set
 void bw_propagate(int rep_node, graph& g, int* reachable, int* fw_arr, int& unaffected, del_set& deleted_edges){
 	int* scc_counts = g.count_in_sccs;
 	int* scc_map = g.scc_map;
-	int temp_size = scc_counts[find_index(scc_map[rep_node], g.rep_nodes, g.scc_count)];
+	int index = find_index(scc_map[rep_node], g.rep_nodes, g.scc_count);
+	int temp_size = scc_counts[index];
+	try{
+		if(temp_size<0){
+			throw(temp_size);
+		}
+	}
+	catch(...){
+		printf("%d is temp_size, failed bw_propagate, %d is the node and %d is the scc, %d is the index and %d is scc-couint\n",temp_size,rep_node,g.scc_map[rep_node],index,g.scc_count);
+	}
 	int* queue = new int[temp_size]; //assuming scc_counts will give the number of verts
 	int* next_queue = new int[temp_size];
 	int q_size=0, nxt_q_size=0;

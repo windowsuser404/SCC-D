@@ -29,13 +29,22 @@ void fw_new(int& node, graph& g, int*& fw_reach, int*& reachable, del_set& delet
 #if DEBUG
 	printf("fw search %d\n",node);
 #endif
-	int temp_size = g.count_in_sccs[find_index(g.scc_map[node], g.rep_nodes, g.scc_count)];
+	int index = find_index(g.scc_map[node], g.rep_nodes, g.scc_count);
+	int temp_size = g.count_in_sccs[index];
+	try {
+		if(temp_size<0){
+			throw(temp_size);
+		}
+	}
+	catch(...){
+		printf("fw_new failed size, size was %d, %d was node from scc %d, %d is the index and %d is number of sccs\n",temp_size,node,g.scc_map[node],index,g.scc_count);
+	}
+	int* queue = new int[temp_size];
+	int* nxt_queue = new int[temp_size]; // TO:DO figure out the sizes properly
 	//int temp_size = g.n;
 #if DEBUG
 	printf("Making max size as %d\n",temp_size);
 #endif
-	int* queue = new int[temp_size];
-	int* nxt_queue = new int[temp_size]; // TO:DO figure out the sizes properly
 	int q_size=0, nxt_q_size = 0;
 	queue[q_size++] = node;
 	fw_reach[node] = node;
@@ -64,11 +73,11 @@ void fw_new(int& node, graph& g, int*& fw_reach, int*& reachable, del_set& delet
 		nxt_q_size = 0;
 #if DEBUG
 		printf("Doing next a queue of size %d in fw_new function\n", q_size);
+#endif
 		if(q_size>temp_size){
 			printf("\n\n size execeeded \n\n");
 			exit(1);
 		}
-#endif
 	}
 	delete [] queue;
 	delete [] nxt_queue;
@@ -83,9 +92,19 @@ void find_scc(int& node, int*& to_change, int& num_changed, graph& g, int*& reac
 #if DEBUG
 	printf("Finding SCC of %d\n", node);
 #endif
-	int temp_size = g.count_in_sccs[find_index(g.scc_map[node], g.rep_nodes, g.scc_count)];
+	int index = find_index(g.scc_map[node], g.rep_nodes, g.scc_count);
+	int temp_size = g.count_in_sccs[index];
+	try{
+		if(temp_size<0){
+				throw(temp_size);
+		}
+	}
+	catch(...){
+		printf("find_scc failed size, size was %d, %d was node from scc %d, %d was the index and %d was scc number\n",temp_size,node,g.scc_map[node],index,g.scc_count);
+	}
 	int* queue = new int[temp_size];
 	int* nxt_queue = new int[temp_size]; // TO:DO figure out the sizes properly
+										 
 	int q_size=0, nxt_q_size=0;
 	queue[q_size++] = node;
 	to_change[num_changed++] = node;
@@ -96,7 +115,7 @@ void find_scc(int& node, int*& to_change, int& num_changed, graph& g, int*& reac
 			int* Iverts = in_vertices(g, vert);
 			for(int j=0; j<Ideg; j++){
 				int nVert = Iverts[j];
-				if(not_deleted(nVert, vert, deleted_edges) and node==fw_reach[nVert] and !reachable[nVert]){ // last confition might be redundant
+				if(not_deleted(nVert, vert, deleted_edges) and node==fw_reach[nVert] and !reachable[nVert] and g.scc_map[nVert]==g.scc_map[node]){ // last confition might be redundant
 					nxt_queue[nxt_q_size++] = nVert;
 #if DEBUG
 					printf("Marking %d reachable as reachable from %d\n",vert,node);
@@ -112,11 +131,11 @@ void find_scc(int& node, int*& to_change, int& num_changed, graph& g, int*& reac
 
 #if DEBUG
 		printf("Doing next a queue of size %d in fw_new function\n", q_size);
+#endif
 		if(q_size>temp_size){
 			printf("\n\n size execeeded \n\n");
 			exit(1);
 		}
-#endif
 	}
 
 	delete [] queue;
@@ -127,8 +146,16 @@ void update_sccs(int& vert, int*& to_change, int& size, graph& g){
 #if DEBUG
 	printf("updating scc for %d\n", vert);
 #endif
-	
-	g.count_in_sccs[find_index(g.scc_map[vert], g.rep_nodes, g.scc_count)] -= size; //reducing the number of scc nodes
+	int index = find_index(g.scc_map[vert], g.rep_nodes, g.scc_count);
+	try{
+		if(g.count_in_sccs[index]<size+1){
+				throw(index);
+		}
+	}
+	catch(...){
+		printf("SUS_MAX, %d rep_node's scc going from %d to %d\n",g.scc_map[vert],g.count_in_sccs[index],g.count_in_sccs[index]-size);
+	}
+	g.count_in_sccs[index] -= size; //reducing the number of scc nodes
 
 	for(int i=0; i<size; i++){
 #if DEBUG
@@ -150,7 +177,8 @@ void make_scc(int& vert, graph& g, int*& fw_reach, int*& reachable, del_set& del
 	//printf("Starting to make scc of vertex %d\n", vert);
 	fw_new(vert, g, fw_reach, reachable, deleted_edges);
 	int num_changed=0;
-	int* to_change = new int[g.count_in_sccs[find_index(g.scc_map[vert], g.rep_nodes, g.scc_count)]]; //TO:DO will decide size
+	int index = find_index(g.scc_map[vert], g.rep_nodes, g.scc_count);
+	int* to_change = new int[g.count_in_sccs[index]]; //TO:DO will decide size
 	find_scc(vert, to_change, num_changed, g, reachable, deleted_edges, fw_reach);
 	update_sccs(vert, to_change, num_changed, g);
 #if DEBUG
