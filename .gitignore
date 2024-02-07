@@ -7,3 +7,6 @@ scc
 decremental_cpu.cpp
 to_do_list
 to_be_ignored/
+.cache
+compile_commands.json
+perf.data

@@ -54,6 +54,7 @@ using namespace std;
 #include <vector>
 
 #define VERBOSE 0
+#define ERROR_CHECK 0
 #define DEBUG 0
 #define FULL_DEBUG 0
 #define VERIFY 0
@@ -480,6 +481,10 @@ int main(int argc, char **argv) {
 #if PRINTSCC
   print_scc(g);
 #endif
+
+  /*  for (int i = 0; i < g.n; i++) {
+      printf("%d -> %d\n", i, g.scc_map[i]);
+    } */
 
   clear_graph(g);
 
