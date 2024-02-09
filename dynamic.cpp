@@ -11,7 +11,8 @@ struct pair_hash {
 
 typedef unordered_set<pair<int, int>, pair_hash> del_set;
 
-void update_graph(graph &g, char *file) {
+void update_graph(graph &g, char *&file, double &avg_degree,
+                  int &max_deg_vert) {
   FILE *Ufile = fopen(file, "r");
   int src, dst;
   char op;
@@ -24,11 +25,12 @@ void update_graph(graph &g, char *file) {
       add_cnt++;
     }
   }
-  printf("%d number if add was found\n", add_cnt);
   fseek(Ufile, 0, SEEK_SET);
+  printf("%d number of add was found\n", add_cnt);
 
   int *new_srcs = new int[add_cnt];
   int *new_dsts = new int[add_cnt];
+  printf("new arrays created\n");
 
   add_cnt = 0;
   while (3 == fscanf(Ufile, "%c%*[ \t]%d%*[ \t]%d%*[\n]", &op, &src, &dst)) {
@@ -81,8 +83,8 @@ void update_graph(graph &g, char *file) {
   for (int i = 0; i < g.n; ++i)
     temp_counts[i] = 0;
 
-  int *final_out_array = new int[add_cnt - del_cnt];
-  int *final_in_array = new int[add_cnt - del_cnt];
+  int *final_out_array = new int[g.m + add_cnt - del_cnt];
+  int *final_in_array = new int[g.m + add_cnt - del_cnt];
   unsigned *final_out_defl = new unsigned[g.n + 1];
   unsigned *final_in_defl = new unsigned[g.n + 1];
 
@@ -150,4 +152,18 @@ void update_graph(graph &g, char *file) {
 
   delete[] new_dsts;
   delete[] new_srcs;
+
+  avg_degree = 0.0;
+  double max_degree = 0.0;
+  for (int i = 0; i < g.n; ++i) {
+    unsigned out_degree = g.out_degree_list[i + 1] - g.out_degree_list[i];
+    unsigned in_degree = g.in_degree_list[i + 1] - g.in_degree_list[i];
+    double degree = (double)out_degree * (double)in_degree;
+    avg_degree += (double)out_degree;
+    if (degree > max_degree) {
+      max_deg_vert = i;
+      max_degree = degree;
+    }
+  }
+  avg_degree /= (double)g.n;
 }

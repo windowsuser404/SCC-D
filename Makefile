@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -Wall -fopenmp -O3
+CXXFLAGS = -Wall -fopenmp -g
 
 all: scc
 

@@ -1,48 +1,3 @@
-/*
-//@HEADER
-// *****************************************************************************
-//
-//       Multistep: (Strongly) Connected Components Algorithms
-//              Copyright (2016) Sandia Corporation
-//
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
-// the U.S. Government retains certain rights in this software.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions?  Contact  George M. Slota (gmslota@sandia.gov)
-//                      Siva Rajamanickam (srajama@sandia.gov)
-//                      Kamesh Madduri (madduri@cse.psu.edu)
-//
-// *****************************************************************************
-//@HEADER
-*/
-
 using namespace std;
 
 #include <assert.h>
@@ -56,6 +11,7 @@ using namespace std;
 #define VERBOSE 1
 #define DEBUG 0
 #define VERIFY 1
+#define PRINTSCC 0
 #define TIMING 1
 #define TRIM_LEVEL 1
 
@@ -328,6 +284,15 @@ void run_scc(graph &g, int *&scc_maps, int max_deg_vert, double avg_degree,
   start_time = timer() - start_time;
   printf("TOTAL: %9.6lf\n", start_time);
 #endif
+
+  delete[] valid;
+  delete[] valid_verts;
+}
+
+void print_scc(int *&scc_maps, graph &g) {
+  for (int i = 0; i < g.n; i++) {
+    printf("scc of %d is %d\n", i, scc_maps[i]);
+  }
 }
 
 int main(int argc, char **argv) {
@@ -396,15 +361,17 @@ int main(int argc, char **argv) {
 
   //  if (argc == 3)
   // output_scc(g, scc_maps, argv[2]);
-
+#if PRINTSCC
+  print_scc(scc_maps, g);
+#endif
   /////////////////////////////
-  char *file;
-  update_graph(g, file);
+  update_graph(g, argv[2], avg_degree, max_deg_vert);
   /////////////////////////////
 
-  delete[] out_array;
-  delete[] out_degree_list;
-  delete[] scc_maps;
+  run_scc(g, scc_maps, max_deg_vert, avg_degree, vert_cutoff);
+#if PRINTSCC
+  print_scc(scc_maps, g);
+#endif
 
   return 0;
 }
