@@ -1,4 +1,6 @@
 cc*
+.cache/
+*json
 test*
 results_dump
 scc
