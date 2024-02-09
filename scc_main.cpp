@@ -54,13 +54,11 @@ using namespace std;
 #include <vector>
 #include <omp.h>
 
-#define VERBOSE 0
-#define DEBUG 0
-#define FULL_DEBUG 0
-#define VERIFY 0
-#define TIMING 0
+#define VERBOSE 1
+#define DEBUG 1
+#define VERIFY 1
+#define TIMING 1
 #define TRIM_LEVEL 1
-#define PRINTSCC 0
 
 #define THREAD_QUEUE_SIZE 2048
 #define ALPHA 15.0
@@ -81,10 +79,6 @@ typedef struct graph {
   int* in_array;
   unsigned* out_degree_list;
   unsigned* in_degree_list;
-  int scc_count; // no.of scc's
-  int* scc_map;
-  int* rep_nodes; // array keeping count in 
-  int* count_in_sccs; //
 } graph;
 #define out_degree(g, n) (g.out_degree_list[n+1] - g.out_degree_list[n])
 #define in_degree(g, n) (g.in_degree_list[n+1] - g.in_degree_list[n])
@@ -96,7 +90,7 @@ typedef struct graph {
 #include "scc_color.cpp"
 #include "scc_serial.cpp"
 #include "scc_verify.cpp"
-#include "scc_dynamic_parts.cpp"
+
 
 int common_read_edge(char* filename,
   int& n, unsigned& m,
@@ -123,9 +117,7 @@ int common_read_edge(char* filename,
   srcs = new int[m];
   dsts = new int[m];
   while (fscanf(file, "%d%*[ \t]%d", &src, &dest) == 2) {
-#if DEBUG
-//        printf("Source: %d, Destination: %d\n", src, dest);
-#endif
+ //       printf("Source: %d, Destination: %d\n", src, dest);
 	srcs[counter] = src;
 	dsts[counter] = dest;
 	++counter;
@@ -135,7 +127,7 @@ int common_read_edge(char* filename,
   return 0;
 }
 
-/*void read_edge(char* filename,
+void read_edge(char* filename,
   int& n, unsigned& m,
   int*& srcs, int*& dsts)
 {
@@ -169,7 +161,7 @@ int common_read_edge(char* filename,
   }
 
   infile.close();
-}*/
+}
 
 void create_csr(int n, unsigned m, 
   int* srcs, int* dsts,
@@ -236,8 +228,6 @@ void create_csr(int n, unsigned m,
   printf("max deg vert: %d (%d), avg_degree %9.2lf\n", max_deg_vert, max_tot, avg_degree);
 #endif
 }
-
-
 
 void output_scc(graph& g, int* scc_maps, char* output_file)
 {
@@ -363,50 +353,10 @@ else if (TRIM_LEVEL == 2)
   printf("TOTAL: %9.6lf\n", start_time);
 #endif
 
- delete [] valid;
- delete [] valid_verts;
-}
-
-void print_scc(graph& g){
-        for(int i=0; i<g.n; i++){
-                printf("SCC of vertice %d is %d\n",i,g.scc_map[i]);
-        }
-}
-
-void update_g_with_scc(graph& g){
-	int scc_count=0;
-	int* scc_map = g.scc_map;
-	int* rep;
-	int* counts;
-	int curr_index = 0;
-	unordered_map<int, int> temp_indexes;
-	for(int i=0; i<g.n; i++){
-		if(temp_indexes.find(scc_map[i])==temp_indexes.end()){
-			temp_indexes[scc_map[i]] = curr_index++;
-			scc_count++;
-		}
-	}
-	// making it temporarily g.n, will see if realloncation can be done starting with smaller arrays
-//	rep = new int[scc_count];
-//	counts = new int[scc_count];
-	rep = new int[g.n];
-	counts = new int[g.n];
-
-	for(int i=0; i<g.n; i++){
-		counts[i] = 0;
-	}
-	for(int i=0; i<g.n; i++){
-		rep[temp_indexes[scc_map[i]]] = scc_map[i];
-		counts[temp_indexes[scc_map[i]]]++;
-	}
-	g.scc_count = scc_count;
-	g.rep_nodes = rep;
-	g.count_in_sccs = counts;
 }
 
 int main(int argc, char** argv)
 {
-	double start = omp_get_wtime();
   setbuf(stdout, NULL);
   if (argc < 2)
     print_usage(argv);
@@ -439,15 +389,11 @@ int main(int argc, char** argv)
   elt = timer();
 #endif
 
-  double end = omp_get_wtime();
-  printf("\n\n Took %f for reading files\n\n",end-start);
-  start = omp_get_wtime();
-
   create_csr(n, m, srcs, dsts, 
     out_array, in_array,
     out_degree_list, in_degree_list,
     max_deg_vert, avg_degree);
-  graph g = {n, m, out_array, in_array, out_degree_list, in_degree_list, 0, NULL, NULL, NULL}; //keeping NULL at start to create the obejct
+  graph g = {n, m, out_array, in_array, out_degree_list, in_degree_list};
   delete [] srcs;
   delete [] dsts;
 
@@ -470,46 +416,19 @@ int main(int argc, char** argv)
   printf("Multistep SCC time: %9.6lf\n", exec_time);
 #endif
 
-//  scc_verify(g, scc_maps);
+  scc_verify(g, scc_maps);
 
 #if VERBOSE
   elt = timer() - elt;
   printf("Done, %9.6lf\n", elt);
 #endif
 
+  if (argc == 3)
+    output_scc(g, scc_maps, argv[2]);
 
-  end = omp_get_wtime();
-  printf("\n\n Scc done in %f secs \n\n",end-start);
-
-
-  
-//////////////////////////////////////////
-  g.scc_map = scc_maps;
-  update_g_with_scc(g);
-  printf("%p is address of scc_map\n",g.scc_map);
-#if PRINTSCC
-  print_scc(g);
-#endif
-
-//////////////////////////////////////////
-//////////////////////////////////////////
-  start = omp_get_wtime();
-  dynamic(g, g.n, g.scc_map, argv[2]);
-  end = omp_get_wtime();
-
-  printf("\n\n Fully update in %f secs \n\n",end-start);
-
-//////////////////////////////////////////
-
-
-  /*if (argc == 3)
-    output_scc(g, scc_maps, argv[2]);*/
-
-#if PRINTSCC 
-  print_scc(g);
-#endif
-
-  clear_graph(g);
+  delete [] out_array;
+  delete [] out_degree_list;
+  delete [] scc_maps;
 
   return 0;
 }
