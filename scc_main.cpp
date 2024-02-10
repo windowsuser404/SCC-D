@@ -12,7 +12,7 @@ using namespace std;
 #define VERBOSE 1
 #define DEBUG 0
 #define VERIFY 1
-#define PRINTSCC 0
+#define PRINTSCC 1
 #define TIMING 1
 #define TRIM_LEVEL 1
 
