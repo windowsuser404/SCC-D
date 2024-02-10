@@ -11,7 +11,7 @@ using namespace std;
 #define VERBOSE 1
 #define DEBUG 0
 #define VERIFY 1
-#define PRINTSCC 0
+#define PRINTSCC 1
 #define TIMING 1
 #define TRIM_LEVEL 1
 
@@ -295,6 +295,16 @@ void print_scc(int *&scc_maps, graph &g) {
   }
 }
 
+void print_graph(graph &g) {
+  printf("\n\nPrinting the connection of graph with %d verts and %d edges\n\n",
+         g.n, g.m);
+  for (int i = 0; i < g.n; i++) {
+    for (int j = g.out_degree_list[i]; j < g.out_degree_list[i + 1]; j++) {
+      printf("%d --> %d\n", i, g.out_array[j]);
+    }
+  }
+}
+
 int main(int argc, char **argv) {
   setbuf(stdout, NULL);
   if (argc < 2)
@@ -346,6 +356,18 @@ int main(int argc, char **argv) {
 #endif
 
   run_scc(g, scc_maps, max_deg_vert, avg_degree, vert_cutoff);
+#if PRINTSCC
+  print_scc(scc_maps, g);
+#endif
+  /////////////////////////////
+  update_graph(g, argv[2], avg_degree, max_deg_vert);
+  print_graph(g);
+  /////////////////////////////
+  delete[] scc_maps;
+  run_scc(g, scc_maps, max_deg_vert, avg_degree, vert_cutoff);
+#if PRINTSCC
+  print_scc(scc_maps, g);
+#endif
 
 #if TIMING
   exec_time = timer() - exec_time;
@@ -357,20 +379,6 @@ int main(int argc, char **argv) {
 #if VERBOSE
   elt = timer() - elt;
   printf("Done, %9.6lf\n", elt);
-#endif
-
-  //  if (argc == 3)
-  // output_scc(g, scc_maps, argv[2]);
-#if PRINTSCC
-  print_scc(scc_maps, g);
-#endif
-  /////////////////////////////
-  update_graph(g, argv[2], avg_degree, max_deg_vert);
-  /////////////////////////////
-
-  run_scc(g, scc_maps, max_deg_vert, avg_degree, vert_cutoff);
-#if PRINTSCC
-  print_scc(scc_maps, g);
 #endif
 
   return 0;

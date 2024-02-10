@@ -101,36 +101,60 @@ void update_graph(graph &g, char *&file, double &avg_degree,
   for (int i = 0; i < g.n; i++) {
     int degree = 0;
     for (int j = g.in_degree_list[i]; j < g.in_degree_list[i + 1]; j++) {
+#if DEBUG
+      printf("trying %d-->%d\n", g.in_array[j], i);
+#endif
       if (deleted_edges.find(make_pair(g.in_array[j], i)) ==
           deleted_edges.end()) {
-        final_in_array[g.in_degree_list[i] + degree++] = g.in_array[j];
+#if DEBUG
+        printf("adding %d-->%d\n", g.in_array[j], i);
+#endif
+        final_in_array[final_in_defl[i] + degree++] = g.in_array[j];
       }
     }
     for (int j = new_in_defl[i]; j < new_in_defl[i + 1]; j++) {
+#if DEBUG
+      printf("trying %d-->%d\n", new_in_array[j], i);
+#endif
       if (deleted_edges.find(make_pair(new_in_array[j], i)) ==
           deleted_edges.end()) {
-        final_in_array[g.in_degree_list[i] + degree++] = new_in_array[j];
+#if DEBUG
+        printf("adding %d-->%d\n", new_in_array[j], i);
+#endif
+        final_in_array[final_in_defl[i] + degree++] = new_in_array[j];
       }
     }
-    g.in_degree_list[i + 1] = degree;
+    final_in_defl[i + 1] += degree + final_in_defl[i];
   }
 
   // out_array
   for (int i = 0; i < g.n; i++) {
     int degree = 0;
     for (int j = g.out_degree_list[i]; j < g.out_degree_list[i + 1]; j++) {
-      if (deleted_edges.find(make_pair(g.out_array[j], i)) ==
+#if DEBUG
+      printf("trying %d-->%d\n", i, g.out_array[j]);
+#endif
+      if (deleted_edges.find(make_pair(i, g.out_array[j])) ==
           deleted_edges.end()) {
-        final_out_array[g.out_degree_list[i] + degree++] = g.out_array[j];
+#if DEBUG
+        printf("adding %d-->%d\n", i, new_out_array[j]);
+#endif
+        final_out_array[final_out_defl[i] + degree++] = g.out_array[j];
       }
     }
     for (int j = new_out_defl[i]; j < new_out_defl[i + 1]; j++) {
-      if (deleted_edges.find(make_pair(new_out_array[j], i)) ==
+#if DEBUG
+      printf("trying %d-->%d\n", i, new_out_array[j]);
+#endif
+      if (deleted_edges.find(make_pair(i, new_out_array[j])) ==
           deleted_edges.end()) {
-        final_out_array[g.out_degree_list[i] + degree++] = new_out_array[j];
+#if DEBUG
+        printf("adding %d-->%d\n", i, new_out_array[j]);
+#endif
+        final_out_array[final_out_defl[i] + degree++] = new_out_array[j];
       }
     }
-    g.out_degree_list[i + 1] = degree;
+    final_out_defl[i + 1] += degree + final_out_defl[i];
   }
 
   delete[] g.in_array;
