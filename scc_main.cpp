@@ -1,3 +1,4 @@
+#include <cstdio>
 using namespace std;
 
 #include <assert.h>
@@ -11,7 +12,7 @@ using namespace std;
 #define VERBOSE 1
 #define DEBUG 0
 #define VERIFY 1
-#define PRINTSCC 1
+#define PRINTSCC 0
 #define TIMING 1
 #define TRIM_LEVEL 1
 
@@ -354,17 +355,26 @@ int main(int argc, char **argv) {
 #if TIMING
   double exec_time = timer();
 #endif
-
+  double start = omp_get_wtime();
   run_scc(g, scc_maps, max_deg_vert, avg_degree, vert_cutoff);
+  double end = omp_get_wtime();
+  printf("\n\n %f for initial scc \n\n", end - start);
 #if PRINTSCC
   print_scc(scc_maps, g);
 #endif
   /////////////////////////////
+  start = omp_get_wtime();
   update_graph(g, argv[2], avg_degree, max_deg_vert);
-  print_graph(g);
+  end = omp_get_wtime();
+  printf("\n\n updated in %f time \n\n", end - start);
+  // print_graph(g);
   /////////////////////////////
   delete[] scc_maps;
+  double start1 = omp_get_wtime(); // will help us when we subtract start
   run_scc(g, scc_maps, max_deg_vert, avg_degree, vert_cutoff);
+  double end1 = omp_get_wtime();
+  printf("\n\n %f time to run scc \n\n", end1 - start1);
+  printf("\n\n %f total update time \n\n", end1 - start1 + end - start);
 #if PRINTSCC
   print_scc(scc_maps, g);
 #endif
