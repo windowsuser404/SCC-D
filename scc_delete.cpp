@@ -1,14 +1,14 @@
 #include "scc_delete_new_scc.cpp"
 
 void fw_propagate(int rep_node, graph &g, int *reachable, int *fw_reach,
-                  del_set &deleted_edges) {
+                  del_set &deleted_edges, int *&queue, int *&next_queue) {
 #if DEBUG
   printf("Starting with the forwards marking from %d\n", rep_node);
 #endif
-  int index = find_index(rep_node, g.rep_nodes, g.scc_count);
-  int temp_size = g.count_in_sccs[index];
+  // int index = find_index(rep_node, g.rep_nodes, g.scc_count);
+  // int temp_size = g.count_in_sccs[index];
 
-#ifdef ERROR_CHECK
+#if ERROR_CHECK
   try {
     if (temp_size < 0) {
       throw(temp_size);
@@ -19,10 +19,6 @@ void fw_propagate(int rep_node, graph &g, int *reachable, int *fw_reach,
            temp_size, rep_node, g.scc_map[rep_node], index, g.scc_count);
   }
 #endif
-
-  // assuming scc_counts will give the number of verts
-  int *queue = new int[temp_size];
-  int *next_queue = new int[temp_size];
 
 #if DEBUG
   printf("Allocated queues sucessfully of size %d\n", temp_size);
@@ -65,19 +61,20 @@ void fw_propagate(int rep_node, graph &g, int *reachable, int *fw_reach,
     }
 #endif
   }
-  delete[] queue;
-  delete[] next_queue;
+
 #if DEBUG
   printf("Successfull marked all nodes reachable from %d\n", rep_node);
 #endif
 }
 
 void bw_propagate(int rep_node, graph &g, int *reachable, int *fw_arr,
-                  int &unaffected, del_set &deleted_edges) {
+                  int &unaffected, del_set &deleted_edges, int *&queue,
+                  int *&next_queue) {
   int *scc_counts = g.count_in_sccs;
   int *scc_map = g.scc_map;
-  int index = find_index(scc_map[rep_node], g.rep_nodes, g.scc_count);
-  int temp_size = scc_counts[index];
+// int index = find_index(scc_map[rep_node], g.rep_nodes, g.scc_count);
+// int temp_size = scc_counts[index];
+#if ERROR_CHECK
   try {
     if (temp_size < 0) {
       throw(temp_size);
@@ -87,9 +84,8 @@ void bw_propagate(int rep_node, graph &g, int *reachable, int *fw_arr,
            "scc, %d is the index and %d is scc-couint\n",
            temp_size, rep_node, g.scc_map[rep_node], index, g.scc_count);
   }
-  int *queue =
-      new int[temp_size]; // assuming scc_counts will give the number of verts
-  int *next_queue = new int[temp_size];
+#endif
+
   int q_size = 0, nxt_q_size = 0;
   reachable[rep_node] = 1;
   queue[0] = rep_node;
@@ -126,18 +122,18 @@ void bw_propagate(int rep_node, graph &g, int *reachable, int *fw_arr,
     }
 #endif
   }
-
-  delete[] queue;
-  delete[] next_queue;
 }
 
 void search(int rep_node, graph &g, int *reachable, int *fw_arr,
-            int &unaffected, del_set &deleted_edges) {
+            int &unaffected, del_set &deleted_edges, int *&queue,
+            int *&next_queue) {
 #if DEBUG
   printf("Starting to search %d \n", rep_node);
 #endif
-  fw_propagate(rep_node, g, reachable, fw_arr, deleted_edges);
-  bw_propagate(rep_node, g, reachable, fw_arr, unaffected, deleted_edges);
+  fw_propagate(rep_node, g, reachable, fw_arr, deleted_edges, queue,
+               next_queue);
+  bw_propagate(rep_node, g, reachable, fw_arr, unaffected, deleted_edges, queue,
+               next_queue);
 #if DEBUG
   printf("finished search \n");
 #endif
@@ -164,14 +160,22 @@ void naive_delete(del_set &deleted_edges, graph &g, int *&out_q, int *&in_q,
   for (int i = 0; i < g.n; i++) {
     reachable[i] = 0;
   }
-  for (int i = 0; i < g.scc_count;
-       i++) { // assuming scc_no is available, can be calculated earier
-    int vert =
-        g.rep_nodes[i]; // assuming scc_array has like the list of rep_nodes
+
+  // defining for maximum capacity
+  int *queue = new int[g.n];
+  int *next_queue = new int[g.n];
+  //
+  for (int i = 0; i < g.scc_count; i++) {
+    int vert = g.rep_nodes[i];
     if (!reachable[vert]) {
-      search(vert, g, reachable, fw_reach, unaffected, deleted_edges);
+      search(vert, g, reachable, fw_reach, unaffected, deleted_edges, queue,
+             next_queue);
     }
   }
+  // deleted the pre allocated space
+  delete[] queue;
+  delete[] next_queue;
+  //
 
   int *unreachable = new int[g.n - unaffected]; // array to keep list of verts
                                                 // that needs to be changed

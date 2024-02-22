@@ -33,11 +33,15 @@ void edge_insertion(graph &g, FILE *file, int *insertsrc_avail,
   int root_count, condensed_edges, extra_condense_count = 0;
   int *scc_outarr, *scc_inarr, *scc_index, *inverse_scc;
   unsigned int *scc_outdegree_list, *scc_indegree_list;
+#if Nmessage
   printf("Going to condense\n");
+#endif
   insert_condense(g, scc_maps, num_verts, g.m, scc_outarr, scc_inarr,
                   scc_outdegree_list, scc_indegree_list, root_count,
                   condensed_edges, scc_index, inverse_scc, deleted_edges);
+#if Nmessage
   printf("Finished condensing\n");
+#endif
 
 #if DEBUG
   printf("\n\ninarray at %p\n", &scc_inarr);
@@ -72,7 +76,11 @@ void edge_insertion(graph &g, FILE *file, int *insertsrc_avail,
     printf("%d has %d slots\n", i, insertsrc_avail[i]);
   }
 #endif
+
+#if Nmessage
   printf("Updating diff csr\n");
+#endif
+
   while (fscanf(file, "%c%*[ \t]%d%*[ \t]%d%*[\n]", &op, &src, &dst) == 3) {
     if (op == 'a') {
       // printf("Line has %d -> %d\n",src,dst);
@@ -137,7 +145,9 @@ void edge_insertion(graph &g, FILE *file, int *insertsrc_avail,
     }
   }
 
+#if Nmessage
   printf("diff csr updated\n");
+#endif
 
   int *placeholder1;
   unsigned int *placeholder2;
@@ -184,7 +194,11 @@ void edge_insertion(graph &g, FILE *file, int *insertsrc_avail,
 
   // scc algorithm on condensed graph
   condensed_g.m = condensed_g.m + extra_condense_count;
+
+#if Nmessage
   printf("Strting scc on condensend graph\n");
+#endif
+
   condense_scc_update(
       condensed_g, scc_maps, scc_index, inverse_scc, scc_diff_out, scc_diff_in,
       scc_diff_outdeg_list,
@@ -374,6 +388,7 @@ void dynamic(graph &g, int verts, int *scc_maps, char *u_file) {
     }
     //	FILE* file = fopen("test.update","r");
     if (file) {
+
       printf("file opening successful\n");
     }
     for (int i = 0; i < verts; i++) {
@@ -387,7 +402,7 @@ void dynamic(graph &g, int verts, int *scc_maps, char *u_file) {
     if (feof(file)) {
       // End of file
       printf("Reached end of file\n");
-      ;
+
     } else {
       printf("We havent reached\n");
     }

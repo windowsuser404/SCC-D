@@ -54,6 +54,7 @@ using namespace std;
 #include <vector>
 
 #define VERBOSE 0
+#define Nmessage 0
 #define ERROR_CHECK 0
 #define DEBUG 0
 #define FULL_DEBUG 0
@@ -460,7 +461,6 @@ int main(int argc, char **argv) {
   //////////////////////////////////////////
   g.scc_map = scc_maps;
   update_g_with_scc(g);
-  printf("%p is address of scc_map\n", g.scc_map);
 #if PRINTSCC
   print_scc(g);
 #endif
