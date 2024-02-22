@@ -2,7 +2,7 @@
 
 void fw_propagate(int rep_node, graph &g, int *reachable, int *fw_reach,
                   del_set &deleted_edges, int *&queue, int *&next_queue) {
-#if DEBUG
+#if FULL_DEBUG
   printf("Starting with the forwards marking from %d\n", rep_node);
 #endif
   // int index = find_index(rep_node, g.rep_nodes, g.scc_count);
@@ -20,7 +20,7 @@ void fw_propagate(int rep_node, graph &g, int *reachable, int *fw_reach,
   }
 #endif
 
-#if DEBUG
+#if ERROR_CHECK
   printf("Allocated queues sucessfully of size %d\n", temp_size);
 #endif
 
@@ -53,7 +53,7 @@ void fw_propagate(int rep_node, graph &g, int *reachable, int *fw_reach,
     q_size = nxt_q_size;
     swap(queue, next_queue);
     nxt_q_size = 0;
-#if DEBUG
+#if ERROR_CHECK
     printf("Doing next a queue of size %d in fw_new function\n", q_size);
     if (q_size > temp_size) {
       printf("\n\n size execeeded \n\n");
@@ -62,7 +62,7 @@ void fw_propagate(int rep_node, graph &g, int *reachable, int *fw_reach,
 #endif
   }
 
-#if DEBUG
+#if FULL_DEBUG
   printf("Successfull marked all nodes reachable from %d\n", rep_node);
 #endif
 }
@@ -104,7 +104,7 @@ void bw_propagate(int rep_node, graph &g, int *reachable, int *fw_arr,
             not_deleted(nVert, vert, deleted_edges) and !reachable[nVert]) {
           next_queue[nxt_q_size++] = nVert;
           reachable[nVert] = 1;
-#if DEBUG
+#if FULL_DEBUG
           printf("Marking %d as reachable as it still belongs to %d scc\n",
                  nVert, rep_node);
 #endif
@@ -114,7 +114,7 @@ void bw_propagate(int rep_node, graph &g, int *reachable, int *fw_arr,
     swap(queue, next_queue);
     q_size = nxt_q_size;
     nxt_q_size = 0;
-#if DEBUG
+#if ERROR_CHECK
     printf("Doing next a queue of size %d in fw_new function\n", q_size);
     if (q_size > temp_size) {
       printf("\n\n size execeeded \n\n");
@@ -127,7 +127,7 @@ void bw_propagate(int rep_node, graph &g, int *reachable, int *fw_arr,
 void search(int rep_node, graph &g, int *reachable, int *fw_arr,
             int &unaffected, del_set &deleted_edges, int *&queue,
             int *&next_queue) {
-#if DEBUG
+#if FULL_DEBUG
   printf("Starting to search %d \n", rep_node);
 #endif
   fw_propagate(rep_node, g, reachable, fw_arr, deleted_edges, queue,

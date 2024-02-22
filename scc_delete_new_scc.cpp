@@ -47,7 +47,7 @@ void fw_new(int &node, graph &g, int *&fw_reach, int *&reachable,
   }
 #endif
   // int temp_size = g.n;
-#if DEBUG
+#if ERROR_CHECK
   printf("Making max size as %d\n", temp_size);
 #endif
   int q_size = 0, nxt_q_size = 0;
@@ -68,7 +68,7 @@ void fw_new(int &node, graph &g, int *&fw_reach, int *&reachable,
             g.scc_map[node] == g.scc_map[nVert] and fw_reach[nVert] != node) {
           next_queue[nxt_q_size++] = nVert;
           fw_reach[nVert] = node;
-#if DEBUG
+#if FULL_DEBUG
           printf("Marking %d as reachable from %d\n", nVert, node);
 #endif
         }
@@ -77,7 +77,7 @@ void fw_new(int &node, graph &g, int *&fw_reach, int *&reachable,
     swap(queue, next_queue);
     q_size = nxt_q_size;
     nxt_q_size = 0;
-#if DEBUG
+#if FULL_DEBUG
     printf("Doing next a queue of size %d in fw_new function\n", q_size);
 #endif
 
@@ -133,7 +133,7 @@ void find_scc(
             g.scc_map[nVert] ==
                 g.scc_map[node]) { // last confition might be redundant
           next_queue[nxt_q_size++] = nVert;
-#if DEBUG
+#if FULL_DEBUG
           printf("Marking %d reachable as reachable from %d\n", vert, node);
 #endif
           reachable[nVert] = 1;
@@ -146,7 +146,7 @@ void find_scc(
     q_size = nxt_q_size;
     nxt_q_size = 0;
 
-#if DEBUG
+#if FULL_DEBUG
     printf("Doing next a queue of size %d in fw_new function\n", q_size);
 #endif
 
@@ -180,7 +180,7 @@ void update_sccs(int &vert, int *&to_change, int &size, graph &g) {
 
   for (int i = 0; i < size; i++) {
 
-#if DEBUG
+#if FULL_DEBUG
     printf("changing %d's scc from %d to %d\n where scc_map is at %p\n",
            to_change[i], g.scc_map[to_change[i]], vert, g.scc_map);
 #endif

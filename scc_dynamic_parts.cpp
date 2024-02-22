@@ -414,7 +414,7 @@ void dynamic(graph &g, int verts, int *scc_maps, char *u_file) {
     // very bad piece of code, will soon remove this
     // temp_update_function(g, file);
     // fseek(file, 0, SEEK_SET);
-
+    printf("Starting with insertion\n");
     double start = omp_get_wtime();
     edge_insertion(g, file, insertsrc_avail, insertdst_avail, inserts, verts,
                    g.scc_map, deleted_edges);

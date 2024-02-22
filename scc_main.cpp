@@ -54,9 +54,9 @@ using namespace std;
 #include <vector>
 
 #define VERBOSE 0
-#define Nmessage 0
+#define Nmessage 1
 #define ERROR_CHECK 0
-#define DEBUG 0
+#define DEBUG 1
 #define FULL_DEBUG 0
 #define VERIFY 0
 #define TIMING 0
