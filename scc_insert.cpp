@@ -34,7 +34,7 @@ void insert_condense(graph &g, int *&scc_maps, int num_verts, int edges,
     int *out_verts = out_vertices(g, i);
     int out_deg = out_degree(g, i);
     for (int j = 0; j < out_deg; j++) {
-      std::pair temp = make_pair(i, out_verts[j]);
+      std::pair<int, int> temp = make_pair(i, out_verts[j]);
       if ((deleted_edges.find(temp) == deleted_edges.end())) {
         if (scc_maps[i] != scc_maps[out_verts[j]]) {
 #if DEBUG

@@ -17,7 +17,7 @@ struct pair_hash {
 typedef unordered_set<pair<int, int>, pair_hash> del_set;
 
 bool not_deleted(int &src, int &dst, del_set &deleted_edges) {
-  std::pair temp = make_pair(src, dst);
+  std::pair<int, int> temp = make_pair(src, dst);
   if (deleted_edges.find(temp) != deleted_edges.end()) {
     return false;
   } else {
