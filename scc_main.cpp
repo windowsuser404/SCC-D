@@ -48,7 +48,6 @@ using namespace std;
 #include <assert.h>
 #include <cstdlib>
 #include <fstream>
-// #include <omp.h>
 #include <string.h>
 #include <sys/time.h>
 #include <vector>
@@ -62,7 +61,11 @@ using namespace std;
 #define TIMING 0
 #define TRIM_LEVEL 1
 #define PRINTSCC 0
-#define DYNAMIC_TIMING 0
+#define DYNAMIC_TIMING 1
+
+#if DYNAMIC_TIMING
+#include <omp.h>
+#endif
 
 #define THREAD_QUEUE_SIZE 2048
 #define ALPHA 15.0
