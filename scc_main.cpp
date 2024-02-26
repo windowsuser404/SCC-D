@@ -48,20 +48,21 @@ using namespace std;
 #include <assert.h>
 #include <cstdlib>
 #include <fstream>
-#include <omp.h>
+// #include <omp.h>
 #include <string.h>
 #include <sys/time.h>
 #include <vector>
 
 #define VERBOSE 0
-#define Nmessage 1
+#define Nmessage 0
 #define ERROR_CHECK 0
-#define DEBUG 1
+#define DEBUG 0
 #define FULL_DEBUG 0
 #define VERIFY 0
 #define TIMING 0
 #define TRIM_LEVEL 1
 #define PRINTSCC 0
+#define DYNAMIC_TIMING 0
 
 #define THREAD_QUEUE_SIZE 2048
 #define ALPHA 15.0
@@ -385,7 +386,9 @@ void update_g_with_scc(graph &g) {
 }
 
 int main(int argc, char **argv) {
+#if DYNAMIC_TIMING
   double start = omp_get_wtime();
+#endif
   setbuf(stdout, NULL);
   if (argc < 2)
     print_usage(argv);
@@ -418,9 +421,11 @@ int main(int argc, char **argv) {
   elt = timer();
 #endif
 
+#if DYNAMIC_TIMING
   double end = omp_get_wtime();
   printf("\n\n Took %f for reading files\n\n", end - start);
   start = omp_get_wtime();
+#endif
 
   create_csr(n, m, srcs, dsts, out_array, in_array, out_degree_list,
              in_degree_list, max_deg_vert, avg_degree);
@@ -455,23 +460,31 @@ int main(int argc, char **argv) {
   printf("Done, %9.6lf\n", elt);
 #endif
 
+#if DYNAMIC_TIMING
   end = omp_get_wtime();
   printf("\n\n Scc done in %f secs \n\n", end - start);
+#endif
 
   //////////////////////////////////////////
   g.scc_map = scc_maps;
   update_g_with_scc(g);
-#if PRINTSCC
-  print_scc(g);
+// #if PRINTSCC
+// print_scc(g);
+// #endif
+
+//////////////////////////////////////////
+//////////////////////////////////////////
+#if DYNAMIC_TIMING
+  start = omp_get_wtime();
+#endif
+  dynamic(g, g.n, g.scc_map, argv[2]);
+#if DYNAMIC_TIMING
+  end = omp_get_wtime();
 #endif
 
-  //////////////////////////////////////////
-  //////////////////////////////////////////
-  start = omp_get_wtime();
-  dynamic(g, g.n, g.scc_map, argv[2]);
-  end = omp_get_wtime();
-
+#if DYNAMIC_TIMING
   printf("\n\n Fully update in %f secs \n\n", end - start);
+#endif
 
   //////////////////////////////////////////
 

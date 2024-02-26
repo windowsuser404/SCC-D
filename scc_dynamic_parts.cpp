@@ -355,10 +355,15 @@ void edge_deletion(graph &g, FILE *file, int *insertsrc_avail,
   printf("Starting with deletion\n");
 #endif
 
+#if DYNAMIC_TIMING
   double start = omp_get_wtime();
+#endif
   naive_delete(deleted_edges, g, out_queue, in_queue, temp_in_q.size());
+
+#if DYNAMIC_TIMING
   double end = omp_get_wtime();
-  printf("\n\n Deletion done in : %f secs \n\n", end - start);
+#endif
+  // printf("\n\n Deletion done in : %f secs \n\n", end - start);
 
   delete[] out_queue;
   delete[] in_queue;
@@ -415,13 +420,17 @@ void dynamic(graph &g, int verts, int *scc_maps, char *u_file) {
     // temp_update_function(g, file);
     // fseek(file, 0, SEEK_SET);
     printf("Starting with insertion\n");
+#if DYNAMIC_TIMING
     double start = omp_get_wtime();
+#endif
     edge_insertion(g, file, insertsrc_avail, insertdst_avail, inserts, verts,
                    g.scc_map, deleted_edges);
+#if DYNAMIC_TIMING
     double end = omp_get_wtime();
-    printf("Insertion done in %f secs", end - start);
+#endif
+    // printf("Insertion done in %f secs", end - start);
 
-    printf("\n\nUpdated in %f secs\n\n", end - start);
+    // printf("\n\nUpdated in %f secs\n\n", end - start);
 
 #if DEBUG
     for (int i = 0; i < g.n; i++) {

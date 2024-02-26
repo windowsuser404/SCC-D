@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -Wall -fopenmp -g -Wextra -Wconversion -pedantic -std=gnu11 
+CXXFLAGS = -Wall -g -Wextra -Wconversion -pedantic -std=gnu11 
 
 all: scc
 
