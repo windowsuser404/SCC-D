@@ -5,61 +5,45 @@ void fw_propagate(int rep_node, graph &g, int *reachable, int *fw_reach,
 #if FULL_DEBUG
   printf("Starting with the forwards marking from %d\n", rep_node);
 #endif
-  // int index = find_index(rep_node, g.rep_nodes, g.scc_count);
-  // int temp_size = g.count_in_sccs[index];
-
-#if ERROR_CHECK
-  try {
-    if (temp_size < 0) {
-      throw(temp_size);
-    }
-  } catch (...) {
-    printf("%d is temp_size, failed to fw_propagate,%d is the node from scc "
-           "%d, %d is the index and %d is scc-count\n",
-           temp_size, rep_node, g.scc_map[rep_node], index, g.scc_count);
-  }
-#endif
-
-#if ERROR_CHECK
-  printf("Allocated queues sucessfully of size %d\n", temp_size);
-#endif
-
+  int i, j, t_index;
+  int vert, Odeg, *Overts;
   int q_size = 0, nxt_q_size = 0;
   queue[q_size++] = rep_node;
   fw_reach[rep_node] = rep_node;
-  while (q_size) {
-    for (int i = 0; i < q_size; i++) {
-      int vert = queue[i];
-      // reachable[vert] = 1;
-      int Odeg = out_degree(g, vert);
-      int *Overts = out_vertices(g, vert);
-      for (int j = 0; j < Odeg; j++) {
-        int nVert = Overts[j];
-        if ((rep_node != fw_reach[nVert]) and
-            (g.scc_map[nVert] == g.scc_map[rep_node]) and
-            not_deleted(vert, nVert,
-                        deleted_edges)) { // checking for -1 as only rep_node is
-                                          // propagating hence other nodes cant
-                                          // come here
-          next_queue[nxt_q_size++] = nVert;
+
+  // #pragma omp parallel private(j, t_index) shared(vert, Odeg, Overts)
+  {
+    while (q_size) {
+      for (i = 0; i < q_size; i++) {
+        vert = queue[i];
+        Odeg = out_degree(g, vert);
+        Overts = out_vertices(g, vert);
+        // #pragma omp barrier
+        // #pragma omp for
+        for (j = 0; j < Odeg; j++) {
+          int nVert = Overts[j];
+          // checking for -1 as only rep_node is propagating hence other nodes
+          // cant come here
+          if ((rep_node != fw_reach[nVert]) and
+              (g.scc_map[nVert] == g.scc_map[rep_node]) and
+              not_deleted(vert, nVert, deleted_edges)) {
+            // #pragma omp atomic capture
+            t_index = nxt_q_size++;
+            next_queue[t_index] = nVert;
 #if DEBUG
-//				printf("Marking %d fw_reachable from %d\n",vert,
-// rep_node);
+            printf("Marking %d fw_reachable from %d\n", vert, rep_node);
 #endif
-          fw_reach[nVert] = rep_node;
+            fw_reach[nVert] = rep_node;
+          }
         }
       }
+      // #pragma omp single
+      {
+        q_size = nxt_q_size;
+        swap(queue, next_queue);
+        nxt_q_size = 0;
+      }
     }
-    q_size = nxt_q_size;
-    swap(queue, next_queue);
-    nxt_q_size = 0;
-#if ERROR_CHECK
-    printf("Doing next a queue of size %d in fw_new function\n", q_size);
-    if (q_size > temp_size) {
-      printf("\n\n size execeeded \n\n");
-      exit(1);
-    }
-#endif
   }
 
 #if FULL_DEBUG
@@ -72,55 +56,44 @@ void bw_propagate(int rep_node, graph &g, int *reachable, int *fw_arr,
                   int *&next_queue) {
   int *scc_counts = g.count_in_sccs;
   int *scc_map = g.scc_map;
-// int index = find_index(scc_map[rep_node], g.rep_nodes, g.scc_count);
-// int temp_size = scc_counts[index];
-#if ERROR_CHECK
-  try {
-    if (temp_size < 0) {
-      throw(temp_size);
-    }
-  } catch (...) {
-    printf("%d is temp_size, failed bw_propagate, %d is the node and %d is the "
-           "scc, %d is the index and %d is scc-couint\n",
-           temp_size, rep_node, g.scc_map[rep_node], index, g.scc_count);
-  }
-#endif
-
+  int i, j, t_index;
+  int vert, Ideg, *Iverts;
   int q_size = 0, nxt_q_size = 0;
   reachable[rep_node] = 1;
   queue[0] = rep_node;
   q_size++;
 
-  while (q_size) {
-    for (int i = 0; i < q_size; i++) {
-      unaffected++;
-      int vert = queue[i];
-      int Ideg = in_degree(g, vert);
-      int *Iverts = in_vertices(g, vert);
-      for (int j = 0; j < Ideg; j++) {
-        int nVert = Iverts[j];
-        if (scc_map[rep_node] == scc_map[nVert] and
-            rep_node == fw_arr[nVert] and
-            not_deleted(nVert, vert, deleted_edges) and !reachable[nVert]) {
-          next_queue[nxt_q_size++] = nVert;
-          reachable[nVert] = 1;
+  // #pragma omp parallel private(j, t_index) shared(vert, Ideg, Iverts)
+  {
+    while (q_size) {
+      for (i = 0; i < q_size; i++) {
+        // #pragma omp single
+        { unaffected++; }
+        vert = queue[i];
+        Ideg = in_degree(g, vert);
+        Iverts = in_vertices(g, vert);
+        // #pragma omp barrier
+        // #pragma omp for
+        for (j = 0; j < Ideg; j++) {
+          int nVert = Iverts[j];
+          if (scc_map[rep_node] == scc_map[nVert] and
+              rep_node == fw_arr[nVert] and
+              not_deleted(nVert, vert, deleted_edges) and !reachable[nVert]) {
+            // #pragma omp atomic capture
+            t_index = nxt_q_size++;
+            next_queue[t_index] = nVert;
+            reachable[nVert] = 1;
 #if FULL_DEBUG
-          printf("Marking %d as reachable as it still belongs to %d scc\n",
-                 nVert, rep_node);
+            printf("Marking %d as reachable as it still belongs to %d scc\n",
+                   nVert, rep_node);
 #endif
+          }
         }
       }
+      swap(queue, next_queue);
+      q_size = nxt_q_size;
+      nxt_q_size = 0;
     }
-    swap(queue, next_queue);
-    q_size = nxt_q_size;
-    nxt_q_size = 0;
-#if ERROR_CHECK
-    printf("Doing next a queue of size %d in fw_new function\n", q_size);
-    if (q_size > temp_size) {
-      printf("\n\n size execeeded \n\n");
-      exit(1);
-    }
-#endif
   }
 }
 
