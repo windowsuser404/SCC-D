@@ -55,8 +55,8 @@ using namespace std;
 #define VERBOSE 0
 #define Nmessage 0
 #define ERROR_CHECK 0
-#define DEBUG 0
-#define FULL_DEBUG 0
+#define DEBUG 1
+#define FULL_DEBUG 1
 #define VERIFY 0
 #define TIMING 0
 #define TRIM_LEVEL 1
