@@ -51,47 +51,40 @@ void fw_new(int &node, graph &g, int *&fw_reach, int *&reachable,
   printf("Making max size as %d\n", temp_size);
 #endif
   int q_size = 0, nxt_q_size = 0;
+  int i, j, t_index;
+  int vert, Odeg, *Overts;
   queue[q_size++] = node;
   fw_reach[node] = node;
-  while (q_size) {
-    //	for(int i=0; i<q_size; i++){ //doing separately to ensure we dont repeat
-    // vertices later 		int vert = queue[i]; 		fw_reach[vert] =
-    // node;
-    //	}
-    for (int i = 0; i < q_size; i++) {
-      int vert = queue[i];
-      int Odeg = out_degree(g, vert);
-      int *Overts = out_vertices(g, vert);
-      for (int j = 0; j < Odeg; j++) {
-        int nVert = Overts[j];
-        if (!reachable[nVert] and not_deleted(vert, nVert, deleted_edges) and
-            g.scc_map[node] == g.scc_map[nVert] and fw_reach[nVert] != node) {
-          next_queue[nxt_q_size++] = nVert;
-          fw_reach[nVert] = node;
+  {
+    while (q_size) {
+      for (int i = 0; i < q_size; i++) {
+        vert = queue[i];
+        Odeg = out_degree(g, vert);
+        Overts = out_vertices(g, vert);
+#pragma omp parallel for private(j, t_index)
+        for (int j = 0; j < Odeg; j++) {
+          int nVert = Overts[j];
+          if (!reachable[nVert] and not_deleted(vert, nVert, deleted_edges) and
+              g.scc_map[node] == g.scc_map[nVert] and fw_reach[nVert] != node) {
+#pragma omp atomic capture
+            t_index = nxt_q_size++;
+            next_queue[t_index] = nVert;
+            fw_reach[nVert] = node;
 #if FULL_DEBUG
-          printf("Marking %d as reachable from %d\n", nVert, node);
+            printf("Marking %d as reachable from %d\n", nVert, node);
 #endif
+          }
         }
       }
-    }
-    swap(queue, next_queue);
-    q_size = nxt_q_size;
-    nxt_q_size = 0;
+
+      swap(queue, next_queue);
+      q_size = nxt_q_size;
+      nxt_q_size = 0;
 #if FULL_DEBUG
-    printf("Doing next a queue of size %d in fw_new function\n", q_size);
+      printf("Doing next a queue of size %d in fw_new function\n", q_size);
 #endif
-
-#if ERROR_CHECK
-    if (q_size > temp_size) {
-      printf("\n\n size execeeded \n\n");
-      exit(1);
     }
-#endif
   }
-
-#if DEBUG
-  printf("done fw search\n");
-#endif
   return;
 }
 
@@ -118,21 +111,25 @@ void find_scc(
 #endif
 
   int q_size = 0, nxt_q_size = 0;
+  int t_index, i, j;
   queue[q_size++] = node;
   to_change[num_changed++] = node;
   reachable[node] = 1;
   while (q_size) {
-    for (int i = 0; i < q_size; i++) {
+    for (i = 0; i < q_size; i++) {
       int vert = queue[i];
       int Ideg = in_degree(g, vert);
       int *Iverts = in_vertices(g, vert);
-      for (int j = 0; j < Ideg; j++) {
+#pragma omp parallel for private(j, t_index)
+      for (j = 0; j < Ideg; j++) {
         int nVert = Iverts[j];
         if (not_deleted(nVert, vert, deleted_edges) and
             node == fw_reach[nVert] and !reachable[nVert] and
             g.scc_map[nVert] ==
                 g.scc_map[node]) { // last confition might be redundant
-          next_queue[nxt_q_size++] = nVert;
+#pragma omp atomic capture
+          t_index = nxt_q_size++;
+          next_queue[t_index] = nVert;
 #if FULL_DEBUG
           printf("Marking %d reachable as reachable from %d\n", vert, node);
 #endif

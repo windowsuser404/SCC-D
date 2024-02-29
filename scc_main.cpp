@@ -389,6 +389,10 @@ void update_g_with_scc(graph &g) {
 }
 
 int main(int argc, char **argv) {
+
+  omp_set_dynamic(0);
+  omp_set_num_threads(atoi(argv[3]));
+
 #if DYNAMIC_TIMING
   double start = omp_get_wtime();
 #endif

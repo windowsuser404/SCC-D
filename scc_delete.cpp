@@ -11,15 +11,13 @@ void fw_propagate(int rep_node, graph &g, int *reachable, int *fw_reach,
   queue[q_size++] = rep_node;
   fw_reach[rep_node] = rep_node;
 
-  // #pragma omp parallel private(j, t_index) shared(vert, Odeg, Overts)
   {
     while (q_size) {
       for (i = 0; i < q_size; i++) {
         vert = queue[i];
         Odeg = out_degree(g, vert);
         Overts = out_vertices(g, vert);
-        // #pragma omp barrier
-        // #pragma omp for
+#pragma omp parallel for private(j, t_index)
         for (j = 0; j < Odeg; j++) {
           int nVert = Overts[j];
           // checking for -1 as only rep_node is propagating hence other nodes
@@ -27,7 +25,7 @@ void fw_propagate(int rep_node, graph &g, int *reachable, int *fw_reach,
           if ((rep_node != fw_reach[nVert]) and
               (g.scc_map[nVert] == g.scc_map[rep_node]) and
               not_deleted(vert, nVert, deleted_edges)) {
-            // #pragma omp atomic capture
+#pragma omp atomic capture
             t_index = nxt_q_size++;
             next_queue[t_index] = nVert;
 #if DEBUG
@@ -37,12 +35,10 @@ void fw_propagate(int rep_node, graph &g, int *reachable, int *fw_reach,
           }
         }
       }
-      // #pragma omp single
-      {
-        q_size = nxt_q_size;
-        swap(queue, next_queue);
-        nxt_q_size = 0;
-      }
+
+      q_size = nxt_q_size;
+      swap(queue, next_queue);
+      nxt_q_size = 0;
     }
   }
 
@@ -63,37 +59,35 @@ void bw_propagate(int rep_node, graph &g, int *reachable, int *fw_arr,
   queue[0] = rep_node;
   q_size++;
 
-  // #pragma omp parallel private(j, t_index) shared(vert, Ideg, Iverts)
-  {
-    while (q_size) {
-      for (i = 0; i < q_size; i++) {
-        // #pragma omp single
-        { unaffected++; }
-        vert = queue[i];
-        Ideg = in_degree(g, vert);
-        Iverts = in_vertices(g, vert);
-        // #pragma omp barrier
-        // #pragma omp for
-        for (j = 0; j < Ideg; j++) {
-          int nVert = Iverts[j];
-          if (scc_map[rep_node] == scc_map[nVert] and
-              rep_node == fw_arr[nVert] and
-              not_deleted(nVert, vert, deleted_edges) and !reachable[nVert]) {
-            // #pragma omp atomic capture
-            t_index = nxt_q_size++;
-            next_queue[t_index] = nVert;
-            reachable[nVert] = 1;
+  while (q_size) {
+    for (i = 0; i < q_size; i++) {
+      {
+        unaffected++;
+      }
+      vert = queue[i];
+      Ideg = in_degree(g, vert);
+      Iverts = in_vertices(g, vert);
+#pragma omp parallel for private(j, t_index)
+      for (j = 0; j < Ideg; j++) {
+        int nVert = Iverts[j];
+        if (scc_map[rep_node] == scc_map[nVert] and
+            rep_node == fw_arr[nVert] and
+            not_deleted(nVert, vert, deleted_edges) and !reachable[nVert]) {
+#pragma atomic capture
+          t_index = nxt_q_size++;
+          next_queue[t_index] = nVert;
+          reachable[nVert] = 1;
 #if FULL_DEBUG
-            printf("Marking %d as reachable as it still belongs to %d scc\n",
-                   nVert, rep_node);
+          printf("Marking %d as reachable as it still belongs to %d scc\n",
+                 nVert, rep_node);
 #endif
-          }
         }
       }
-      swap(queue, next_queue);
-      q_size = nxt_q_size;
-      nxt_q_size = 0;
     }
+
+    swap(queue, next_queue);
+    q_size = nxt_q_size;
+    nxt_q_size = 0;
   }
 }
 
