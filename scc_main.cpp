@@ -311,11 +311,11 @@ void update_g_with_scc(graph &g) {
 int main(int argc, char **argv) {
   if (argc < 5) {
     printf("graph, update file, vertices, edges [optional thread_no] \n");
+    exit(0);
   }
   int threads = 4;
   if (argc == 6) {
     threads = atoi(argv[5]);
-    exit(0);
   }
   printf("Doing with %d threads\n", threads);
   omp_set_num_threads(threads);
