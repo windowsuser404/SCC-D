@@ -43,6 +43,7 @@
 //@HEADER
 */
 
+#include <cstdio>
 using namespace std;
 
 #include <assert.h>
@@ -108,11 +109,11 @@ int common_read_edge(char *filename, int &n, unsigned &m, int *&srcs,
   //  infile.open(filename);
   printf("reading %s\n", filename);
   FILE *file = fopen(filename, "r"); // opening the file
-  if (fscanf(file, "%d %d", &n, &m) != 2) {
-    fprintf(stderr, "Invalid format for n and m in the first line\n");
-    fclose(file);
-    return 1;
-  }
+  // if (fscanf(file, "%d %d", &n, &m) != 2) {
+  //   fprintf(stderr, "Invalid format for n and m in the first line\n");
+  //   fclose(file);
+  //   return 1;
+  // }
 
 #if DEBUG
   printf("vertices:%d, edges:%d\n", n, m);
@@ -389,6 +390,16 @@ void update_g_with_scc(graph &g) {
 }
 
 int main(int argc, char **argv) {
+  if (argc < 5) {
+    printf("graph, update file, vertices, edges [optional thread_no] \n");
+  }
+  int threads = 4;
+  if (argc == 6) {
+    threads = atoi(argv[5]);
+  }
+  printf("Doing with %d threads\n", threads);
+  omp_set_num_threads(threads);
+
 #if DYNAMIC_TIMING
   double start = omp_get_wtime();
 #endif
@@ -398,8 +409,8 @@ int main(int argc, char **argv) {
 
   int *srcs;
   int *dsts;
-  int n;
-  unsigned m;
+  int n = atoi(argv[3]);
+  unsigned m = atoi(argv[4]);
   int *out_array;
   int *in_array;
   unsigned *out_degree_list;
@@ -471,6 +482,7 @@ int main(int argc, char **argv) {
   //////////////////////////////////////////
   g.scc_map = scc_maps;
   update_g_with_scc(g);
+  printf("%d sccs in G\n", g.scc_count);
 // #if PRINTSCC
 // print_scc(g);
 // #endif
@@ -484,6 +496,7 @@ int main(int argc, char **argv) {
 #if DYNAMIC_TIMING
   end = omp_get_wtime();
 #endif
+  printf("%d sccs after updating\n", g.scc_count);
 
 #if DYNAMIC_TIMING
   printf("\n\n Fully update in %f secs \n\n", end - start);

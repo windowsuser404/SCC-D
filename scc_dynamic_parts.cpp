@@ -36,9 +36,19 @@ void edge_insertion(graph &g, FILE *file, int *insertsrc_avail,
 #if Nmessage
   printf("Going to condense\n");
 #endif
+
+#if DYNAMIC_TIMING
+  double start = omp_get_wtime();
+#endif
+
   insert_condense(g, scc_maps, num_verts, g.m, scc_outarr, scc_inarr,
                   scc_outdegree_list, scc_indegree_list, root_count,
                   condensed_edges, scc_index, inverse_scc, deleted_edges);
+#if DYNAMIC_TIMING
+  double end = omp_get_wtime();
+  printf("condensed in %f secs\n", end - start);
+#endif
+
 #if Nmessage
   printf("Finished condensing\n");
 #endif
@@ -55,7 +65,6 @@ void edge_insertion(graph &g, FILE *file, int *insertsrc_avail,
   }
   printf("\n\n");
 #endif
-
   graph condensed_g = {root_count,         (unsigned int)condensed_edges,
                        scc_outarr,         scc_inarr,
                        scc_outdegree_list, scc_indegree_list};
@@ -198,13 +207,19 @@ void edge_insertion(graph &g, FILE *file, int *insertsrc_avail,
 #if Nmessage
   printf("Strting scc on condensend graph\n");
 #endif
-
+#if DYNAMIC_TIMING
+  start = omp_get_wtime();
+#endif
   condense_scc_update(
       condensed_g, scc_maps, scc_index, inverse_scc, scc_diff_out, scc_diff_in,
       scc_diff_outdeg_list,
       scc_diff_indeg_list); // assuming this updates and gives us the result
 
-  //////////////////////////////////
+//////////////////////////////////
+#if DYNAMIC_TIMING
+  end = omp_get_wtime();
+  printf("insertions done in %f secs\n", end - start);
+#endif
 
   for (int i = 0; i < num_verts; i++) {
     scc_maps[i] = scc_maps[scc_maps[i]];
@@ -221,56 +236,6 @@ void edge_insertion(graph &g, FILE *file, int *insertsrc_avail,
   delete[] inverse_scc;
   delete[] scc_index;
   clear_graph(condensed_g);
-}
-
-void temp_update_function(
-    graph &g, FILE *file) { // very redundant, should work on removing this
-                            // function and passing del_set in insertion
-
-  char op;
-  int src, dst, found;
-  // deleting for diff csr
-  while (fscanf(file, "%c%*[ \t]%d%*[ \t]%d%*[\n]", &op, &src, &dst) == 3) {
-    if (op == 'd') {
-#if DEBUG
-      printf("Line has to delete %d -> %d\n", src, dst);
-#endif
-      // changing in "out" side
-#if DEBUG
-      printf("Starting with deleting an edge\n");
-#endif
-
-      int out_deg = out_degree(g, src);
-      int *out_verts = out_vertices(g, src);
-      found = 0;
-      for (int i = 0; i < out_deg; i++) {
-        if (found) {
-          break; // might be useful later
-        }
-        if (out_verts[i] == dst) {
-          out_verts[i] = -1; // will do it later as it causes issues
-          found = 1;
-        }
-      }
-
-      // changing in "in" side
-      int in_deg = in_degree(g, dst);
-      int *in_verts = in_vertices(g, dst);
-      found = 0;
-      for (int i = 0; i < in_deg; i++) {
-        if (found) {
-          break;
-        }
-        if (in_verts[i] == src) {
-          in_verts[i] = -1; // will add later
-          found = 1;
-        }
-      }
-#if FULL_DEBUG
-      printf("Done with deleting an edge\n");
-#endif
-    }
-  }
 }
 
 void edge_deletion(graph &g, FILE *file, int *insertsrc_avail,
@@ -416,9 +381,6 @@ void dynamic(graph &g, int verts, int *scc_maps, char *u_file) {
     printf("%d insertions dedected\n", inserts);
 #endif
 
-    // very bad piece of code, will soon remove this
-    // temp_update_function(g, file);
-    // fseek(file, 0, SEEK_SET);
     printf("Starting with insertion\n");
 #if DYNAMIC_TIMING
     double start = omp_get_wtime();
@@ -427,7 +389,7 @@ void dynamic(graph &g, int verts, int *scc_maps, char *u_file) {
                    g.scc_map, deleted_edges);
 #if DYNAMIC_TIMING
     double end = omp_get_wtime();
-    printf("Insertion done in %f secs", end - start);
+    printf("total insertion time %f secs", end - start);
 
     printf("\n\nUpdated in %f secs\n\n", end - start);
 #endif

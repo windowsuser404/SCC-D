@@ -1,6 +1,7 @@
 cc*
 test*
 results_dump
+.gdb_history
 scc
 *txt
 *sh
