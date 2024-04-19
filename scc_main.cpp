@@ -92,42 +92,6 @@ int common_read_edge(char *filename, int &n, unsigned &m, int *&srcs,
   return 0;
 }
 
-/*void read_edge(char* filename,
-  int& n, unsigned& m,
-  int*& srcs, int*& dsts)
-{
-  ifstream infile;
-  string line;
-  infile.open(filename);
-
-  getline(infile, line, ' ');
-  n = atoi(line.c_str());
-  getline(infile, line);
-  m = strtoul(line.c_str(), NULL, 10);
-#if DEBUG
-  printf("vertices:%d, edges:%d\n",n,m);
-#endif
-
-  int src, dst;
-  unsigned counter = 0;
-
-  srcs = new int[m];
-  dsts = new int[m];
-  for (unsigned i = 0; i < m; ++i)
-  {
-    getline(infile, line, ' ');
-    src = atoi(line.c_str());
-    getline(infile, line);
-    dst = atoi(line.c_str());
-
-    srcs[counter] = src;
-    dsts[counter] = dst;
-    ++counter;
-  }
-
-  infile.close();
-}*/
-
 void create_csr(int n, unsigned m, int *srcs, int *dsts, int *&out_array,
                 int *&in_array, unsigned *&out_degree_list,
                 unsigned *&in_degree_list, int &max_deg_vert,
@@ -351,6 +315,7 @@ int main(int argc, char **argv) {
   int threads = 4;
   if (argc == 6) {
     threads = atoi(argv[5]);
+    exit(0);
   }
   printf("Doing with %d threads\n", threads);
   omp_set_num_threads(threads);
