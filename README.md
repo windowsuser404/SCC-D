@@ -1,6 +1,6 @@
 # Compiling commands
 ~~~bash
-git clone https://github.com/windowsuser404/SCC-D.github
+git clone https://github.com/windowsuser404/SCC-D.git
 cd SCC-D/
 make
 ~~~
