@@ -7,5 +7,5 @@ make
 
 # Usage
 ~~~
-./scc [initial graph] [update file] [graph_vertices] [initial_edges]
+./scc [initial graph] [update file] [graph_vertices] [initial_edges] [optional argument: thread number]
 ~~~
